@@ -33,7 +33,7 @@ namespace com.mutant.ugui.Editor
 
 			root.Add(odinInspector);
 #else
-			InspectorElement.FillDefaultInspector(root, serializedObject, this);
+			UnityEditor.UIElements.InspectorElement.FillDefaultInspector(root, serializedObject, this);
 #endif
 
 			// 추가 UI를 UXML로 로드
