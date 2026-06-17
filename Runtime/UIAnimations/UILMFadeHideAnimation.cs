@@ -1,4 +1,4 @@
-﻿#if DOTWEEN && UNITASK_DOTWEEN_SUPPORT
+﻿#if LITMOTION_SUPPORT
 using JCMediLab.Extensions;
 using LitMotion;
 using UnityEngine;
