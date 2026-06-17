@@ -1,12 +1,19 @@
 ﻿#if LITMOTION_SUPPORT
-using JCMediLab.Extensions;
+using com.mutant.expansion.Extensions;
 using LitMotion;
 using UnityEngine;
 
 namespace com.mutant.ugui.UIAnimations
 {
+	[DisallowMultipleComponent]
 	public class UILMFadeHideAnimation : UILitMotionHideAnimation
 	{
+		public override MotionHandle CreateMotion() {
+			return LMotion.Create(CanvasGroup.alpha, 0f, Duration)
+			              .WithEase(Ease)
+			              .Bind(x => CanvasGroup.alpha = x)
+			              .AddTo(CanvasGroup.gameObject);
+		}
 		public override void CaptureCurrent() {
 			_defaultCanvasAlpha = CanvasGroup.alpha;
 		}
@@ -14,16 +21,8 @@ namespace com.mutant.ugui.UIAnimations
 			CanvasGroup.alpha = _defaultCanvasAlpha;
 		}
 
-		public override MotionHandle CreateMotion() {
-			return LMotion.Create(CanvasGroup.alpha, 0f, Duration)
-			              .WithEase(Ease)
-			              .Bind(x => CanvasGroup.alpha = x)
-			              .AddTo(CanvasGroup.gameObject);
-		}
-
 		public float Duration = 0.3f;
 		public Ease Ease = Ease.Linear;
-
 
 		CanvasGroup _canvasGroup;
 		float _defaultCanvasAlpha;

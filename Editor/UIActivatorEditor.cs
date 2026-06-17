@@ -1,6 +1,6 @@
-﻿using com.mutant.ugui.UIAnimations;
+﻿using com.mutant.expansion.Extensions;
+using com.mutant.ugui.UIAnimations;
 using Cysharp.Threading.Tasks;
-using JCMediLab.Extensions;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -82,23 +82,47 @@ namespace com.mutant.ugui.Editor
 					uiActivator.DeActiveInEditor();
 			});
 
+#if DOTWEEN && UNITASK_DOTWEEN_SUPPORT
 			root.Q<Button>("DotweenAddFadeButton")?.RegisterCallback<ClickEvent>(_ =>
 			{
-#if DOTWEEN && UNITASK_DOTWEEN_SUPPORT
 				UIActivator uiActivator = target as UIActivator;
 				uiActivator.GetOrAddComponent<UIDTFadeShowAnimation>();
 				uiActivator.GetOrAddComponent<UIDTFadeHideAnimation>();
-#endif
 			});
+			root.Q<Button>("DotweenAddScaleButton")?.RegisterCallback<ClickEvent>(_ =>
+			{
+				UIActivator uiActivator = target as UIActivator;
+				uiActivator.GetOrAddComponent<UIDTScaleShowAnimation>();
+				uiActivator.GetOrAddComponent<UIDTScaleHideAnimation>();
+			});
+			root.Q<Button>("DotweenAddSlideButton")?.RegisterCallback<ClickEvent>(_ =>
+			{
+				UIActivator uiActivator = target as UIActivator;
+				uiActivator.GetOrAddComponent<UIDTSlideShowAnimation>();
+				uiActivator.GetOrAddComponent<UIDTSlideHideAnimation>();
+			});
+#endif
 
+#if LITMOTION_SUPPORT
 			root.Q<Button>("LitMotionAddFadeButton")?.RegisterCallback<ClickEvent>(_ =>
 			{
-#if LITMOTION_SUPPORT
 				UIActivator uiActivator = target as UIActivator;
 				uiActivator.GetOrAddComponent<UILMFadeShowAnimation>();
 				uiActivator.GetOrAddComponent<UILMFadeHideAnimation>();
-#endif
 			});
+			root.Q<Button>("LitMotionAddScaleButton")?.RegisterCallback<ClickEvent>(_ =>
+			{
+				UIActivator uiActivator = target as UIActivator;
+				uiActivator.GetOrAddComponent<UILMScaleShowAnimation>();
+				uiActivator.GetOrAddComponent<UILMScaleHideAnimation>();
+			});
+			root.Q<Button>("LitMotionAddSlideButton")?.RegisterCallback<ClickEvent>(_ =>
+			{
+				UIActivator uiActivator = target as UIActivator;
+				uiActivator.GetOrAddComponent<UILMSlideShowAnimation>();
+				uiActivator.GetOrAddComponent<UILMSlideHideAnimation>();
+			});
+#endif
 		}
 	}
 }
