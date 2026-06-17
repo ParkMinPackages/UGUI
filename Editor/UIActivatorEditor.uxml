@@ -1,0 +1,18 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement style="flex-grow: 1; flex-direction: row;">
+        <ui:Button text="Active" name="ActiveButton"/>
+        <ui:Button text="DeActive" name="DeActiveButton"/>
+    </ui:VisualElement>
+    <ui:Foldout text="Add Animation Utility" value="true" name="">
+        <ui:Foldout text="Dotween" value="true" name="Foldout">
+            <ui:Button text="Add Fade" name="DotweenAddFadeButton"/>
+            <ui:Button text="Add Scale" name="DotweenAddScaleButton"/>
+            <ui:Button text="Add Slide" name="DotweenAddSlideButton"/>
+        </ui:Foldout>
+        <ui:Foldout text="LitMotion" value="true">
+            <ui:Button text="Add Fade" name="LitMotionAddFadeButton"/>
+            <ui:Button text="Add Scale" name="LitMotionAddScaleButton"/>
+            <ui:Button text="Add Slide" name="LitMotionAddSlideButton"/>
+        </ui:Foldout>
+    </ui:Foldout>
+</ui:UXML>
