@@ -5,10 +5,12 @@ using System.Threading;
 using com.mutant.ugui.UIAnimations;
 using Cysharp.Threading.Tasks;
 using R3;
-using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+#if ODIN_INSPECTOR
+using Sirenix.OdinInspector;
+#endif
 
 namespace com.mutant.ugui
 {
@@ -27,7 +29,7 @@ namespace com.mutant.ugui
 		}
 
 		// ===================== Public API =====================
-		
+
 		public async UniTask ActiveAsync(bool forceExecute = false, CancelBehavior cancelBehaviour = CancelBehavior.Cancel, CancellationToken cancellationToken = default) {
 			if (forceExecute == false && (_state.Value == State.Active || _state.Value == State.ActiveAnimation)) {
 				return;
