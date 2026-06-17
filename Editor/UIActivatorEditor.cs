@@ -1,7 +1,7 @@
 ﻿using com.mutant.ugui.UIAnimations;
 using Cysharp.Threading.Tasks;
+using JCMediLab.Extensions;
 using UnityEditor;
-using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -18,11 +18,11 @@ namespace com.mutant.ugui.Editor
 		const string UxmlPath = "Packages/com.mutant.ugui/Editor/UIActivatorEditor.uxml";
 
 		public override VisualElement CreateInspectorGUI() {
-			var root = new VisualElement();
+			VisualElement root = new VisualElement();
 
 			// 기존 인스펙터 그대로 출력
 #if ODIN_INSPECTOR
-			var odinInspector = new IMGUIContainer(() =>
+			IMGUIContainer odinInspector = new IMGUIContainer(() =>
 			{
 				serializedObject.Update();
 
@@ -35,9 +35,9 @@ namespace com.mutant.ugui.Editor
 #else
 			InspectorElement.FillDefaultInspector(root, serializedObject, this);
 #endif
-			
+
 			// 추가 UI를 UXML로 로드
-			var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(UxmlPath);
+			VisualTreeAsset visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(UxmlPath);
 
 			if (visualTree == null) {
 				root.Add(new HelpBox(
@@ -47,7 +47,7 @@ namespace com.mutant.ugui.Editor
 				return root;
 			}
 
-			var extraUi = visualTree.CloneTree();
+			TemplateContainer extraUi = visualTree.CloneTree();
 			root.Add(extraUi);
 
 			foreach (Foldout foldout in root.Query<Foldout>().ToList()) {
@@ -65,13 +65,10 @@ namespace com.mutant.ugui.Editor
 				if (target is not UIActivator uiActivator)
 					return;
 
-				if (Application.isPlaying) {
-					uiActivator.ActiveAsync(
-						cancellationToken: Application.exitCancellationToken).Forget();
-				}
-				else {
+				if (Application.isPlaying)
+					uiActivator.ActiveAsync(cancellationToken: Application.exitCancellationToken).Forget();
+				else
 					uiActivator.ActiveInEditor();
-				}
 			});
 
 			root.Q<Button>("DeActiveButton")?.RegisterCallback<ClickEvent>(_ =>
@@ -79,34 +76,27 @@ namespace com.mutant.ugui.Editor
 				if (target is not UIActivator uiActivator)
 					return;
 
-				if (Application.isPlaying) {
-					uiActivator.DeActiveAsync(
-						cancellationToken: Application.exitCancellationToken).Forget();
-				}
-				else {
+				if (Application.isPlaying)
+					uiActivator.DeActiveAsync(cancellationToken: Application.exitCancellationToken).Forget();
+				else
 					uiActivator.DeActiveInEditor();
-				}
 			});
 
 			root.Q<Button>("DotweenAddFadeButton")?.RegisterCallback<ClickEvent>(_ =>
 			{
 #if DOTWEEN && UNITASK_DOTWEEN_SUPPORT
-				if (target is not UIActivator uiActivator)
-					return;
-
-				Undo.AddComponent<UIDTFadeShowAnimation>(uiActivator.gameObject);
-				Undo.AddComponent<UIDTFadeHideAnimation>(uiActivator.gameObject);
+				UIActivator uiActivator = target as UIActivator;
+				uiActivator.GetOrAddComponent<UIDTFadeShowAnimation>();
+				uiActivator.GetOrAddComponent<UIDTFadeHideAnimation>();
 #endif
 			});
 
 			root.Q<Button>("LitMotionAddFadeButton")?.RegisterCallback<ClickEvent>(_ =>
 			{
 #if LITMOTION_SUPPORT
-				if (target is not UIActivator uiActivator)
-					return;
-
-				Undo.AddComponent<UILMFadeShowAnimation>(uiActivator.gameObject);
-				Undo.AddComponent<UILMFadeHideAnimation>(uiActivator.gameObject);
+				UIActivator uiActivator = target as UIActivator;
+				uiActivator.GetOrAddComponent<UILMFadeShowAnimation>();
+				uiActivator.GetOrAddComponent<UILMFadeHideAnimation>();
 #endif
 			});
 		}
