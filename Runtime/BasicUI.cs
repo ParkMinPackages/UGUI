@@ -4,7 +4,7 @@ using UnityEngine;
 namespace com.mutant.ugui
 {
 	[RequireComponent(typeof(UIActivator))]
-	public class BasicUI : RootObject
+	public class BasicUI : Actor
 	{
 		public UIActivator UIActivator
 		{

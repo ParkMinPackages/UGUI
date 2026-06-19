@@ -121,7 +121,7 @@ namespace com.mutant.ugui
 			TryCancelAndDisposeAnimation();
 			_state.Value = State.DeActive;
 		}
-		public async UniTask ActiveAllChildAsync(float duration, bool forceExecute = false, CancelBehavior cancelBehaviour = CancelBehavior.Cancel, CancellationToken cancellationToken = default) {
+		public async UniTask ActiveAllChildAsync(bool forceExecute = false, CancelBehavior cancelBehaviour = CancelBehavior.Cancel, CancellationToken cancellationToken = default) {
 			int count = ChildNodesEnumerable().Count();
 			UniTask[] tasks = new UniTask[count];
 
@@ -131,7 +131,7 @@ namespace com.mutant.ugui
 			}
 			await UniTask.WhenAll(tasks);
 		}
-		public async UniTask DeActiveAllChildAsync(float duration, bool forceExecute = false, CancelBehavior cancelBehaviour = CancelBehavior.Cancel, CancellationToken cancellationToken = default) {
+		public async UniTask DeActiveAllChildAsync(bool forceExecute = false, CancelBehavior cancelBehaviour = CancelBehavior.Cancel, CancellationToken cancellationToken = default) {
 			int count = ChildNodesEnumerable().Count();
 			UniTask[] tasks = new UniTask[count];
 
@@ -141,7 +141,7 @@ namespace com.mutant.ugui
 			}
 			await UniTask.WhenAll(tasks);
 		}
-		public void DeActiveAllChildImmediate() {
+		public void ActiveAllChildImmediate() {
 			foreach (UIActivator eachUIActivator in ChildNodesEnumerable()) {
 				eachUIActivator.ActiveImmediate();
 			}
@@ -178,18 +178,10 @@ namespace com.mutant.ugui
 
 		// ===================== Public Property =====================
 
-#if ODIN_INSPECTOR
-		[ShowInInspector, HideInEditorMode]
-#endif
 		public bool Interactable
 		{
-			get { return _interactable; }
-			set
-			{
-				print("Test");
-				_interactable = value;
-				SetInteractable(_readyInHieraraky.CurrentValue);
-			}
+			get { return _canvasGroup.interactable; }
+			set { _canvasGroup.interactable = value; }
 		}
 
 		public CanvasGroup CanvasGroup
@@ -283,12 +275,6 @@ namespace com.mutant.ugui
 #endif
 		[SerializeField]
 		bool _startActiveState = true;
-
-#if ODIN_INSPECTOR
-		[HideInPlayMode]
-#endif
-		[SerializeField]
-		bool _interactable = true;
 
 #if ODIN_INSPECTOR
 		[SerializeField, FoldoutGroup("Debug", expanded: false), ReadOnly]
@@ -462,8 +448,7 @@ namespace com.mutant.ugui
 		}
 
 		void SetInteractable(bool interactable) {
-			CanvasGroup.blocksRaycasts = interactable && _interactable;
-			CanvasGroup.interactable = interactable && _interactable;
+			CanvasGroup.blocksRaycasts = interactable;
 			if (BaseRaycasters != null && BaseRaycasters.Length != 0) {
 				foreach (BaseRaycaster baseRaycaster in BaseRaycasters) {
 					baseRaycaster.enabled = interactable;
