@@ -7,9 +7,6 @@ using com.mutant.ugui.UIAnimations;
 using Cysharp.Threading.Tasks;
 using R3;
 using UnityEngine;
-#if ODIN_INSPECTOR
-using Sirenix.OdinInspector;
-#endif
 
 namespace com.mutant.ugui
 {
@@ -180,9 +177,6 @@ namespace com.mutant.ugui
 
 		// ===================== Public Property =====================
 
-#if ODIN_INSPECTOR
-		[ShowInInspector]
-#endif
 		public bool Visible
 		{
 			get { return _visible; }
@@ -192,9 +186,6 @@ namespace com.mutant.ugui
 				UpdateVisbleAndFade();
 			}
 		}
-#if ODIN_INSPECTOR
-		[ShowInInspector]
-#endif
 		public bool Raycastable
 		{
 			get { return _raycastable; }
@@ -204,10 +195,6 @@ namespace com.mutant.ugui
 				UpdateRaycastable();
 			}
 		}
-
-#if ODIN_INSPECTOR
-		[ShowInInspector]
-#endif
 		public bool Interactable
 		{
 			get { return _interactable; }
@@ -217,9 +204,6 @@ namespace com.mutant.ugui
 				CanvasGroup.interactable = _interactable;
 			}
 		}
-#if ODIN_INSPECTOR
-		[ShowInInspector]
-#endif
 		public float Fade
 		{
 			get { return _fade; }
@@ -229,27 +213,25 @@ namespace com.mutant.ugui
 				UpdateVisbleAndFade();
 			}
 		}
-#if ODIN_INSPECTOR
-		[ShowInInspector]
-#endif
 		public bool DisableRaycastWhileAnimation
 		{
 			get { return _disableRaycastWhileAnimation; }
-			set { _disableRaycastWhileAnimation = value; }
-		}
-#if ODIN_INSPECTOR
-		[ShowInInspector]
-#endif
-		public bool EnableActiveStateInHierarchyVariable
-		{
-			get { return _enableActiveStateInHierarchyVariable; }
 			set
 			{
-				_enableActiveStateInHierarchyVariable = value;
+				_disableRaycastWhileAnimation = value;
+				UpdateRaycastable();
+			}
+		}
+		public bool EnableActiveStateInHierarchyReactiveProperty
+		{
+			get { return _enableActiveStateInHierarchyReactiveProperty; }
+			set
+			{
+				_enableActiveStateInHierarchyReactiveProperty = value;
 				if (Application.isPlaying == false) return;
 				_activeStateInHierarchyDisposable?.Dispose();
-				if (_enableActiveStateInHierarchyVariable) {
-					IEnumerable<SerializableReactiveProperty<bool>> observables = ParentNodesEnumerable().Select(uiActivator => uiActivator._activeState);
+				if (_enableActiveStateInHierarchyReactiveProperty) {
+					IEnumerable<ReactiveProperty<bool>> observables = ParentNodesEnumerable().Select(uiActivator => uiActivator._activeState);
 					// 모든 부모가 true일때만 true
 					_activeStateInHierarchyDisposable = Observable.CombineLatest(observables)
 					                                              .Subscribe(values =>
@@ -259,19 +241,16 @@ namespace com.mutant.ugui
 				}
 			}
 		}
-#if ODIN_INSPECTOR
-		[ShowInInspector]
-#endif
-		public bool EnableActiveCompleteInHierarchyVariable
+		public bool EnableActiveCompleteInHierarchyReactiveProperty
 		{
-			get { return _enableActiveCompleteInHierarchyVariable; }
+			get { return _enableActiveCompleteInHierarchyReactiveProperty; }
 			set
 			{
-				_enableActiveCompleteInHierarchyVariable = value;
+				_enableActiveCompleteInHierarchyReactiveProperty = value;
 				if (Application.isPlaying == false) return;
 				_activeCompleteInHierarchyDisposable?.Dispose();
-				if (_enableActiveCompleteInHierarchyVariable) {
-					IEnumerable<SerializableReactiveProperty<bool>> observables = ParentNodesEnumerable().Select(uiActivator => uiActivator._activeComplete);
+				if (_enableActiveCompleteInHierarchyReactiveProperty) {
+					IEnumerable<ReactiveProperty<bool>> observables = ParentNodesEnumerable().Select(uiActivator => uiActivator._activeComplete);
 					// 모든 부모가 true일때만 true
 					_activeCompleteInHierarchyDisposable = Observable.CombineLatest(observables)
 					                                                 .Subscribe(values =>
@@ -281,19 +260,16 @@ namespace com.mutant.ugui
 				}
 			}
 		}
-#if ODIN_INSPECTOR
-		[ShowInInspector]
-#endif
-		public bool EnableDeActiveCompleteInHierarchyVariable
+		public bool EnableDeActiveCompleteInHierarchyReactiveProperty
 		{
-			get { return _enableDeActiveCompleteInHierarchyVariable; }
+			get { return _enableDeActiveCompleteInHierarchyReactiveProperty; }
 			set
 			{
-				_enableDeActiveCompleteInHierarchyVariable = value;
+				_enableDeActiveCompleteInHierarchyReactiveProperty = value;
 				if (Application.isPlaying == false) return;
 				_deActiveCompleteInHierarchyDisposable?.Dispose();
-				if (_enableDeActiveCompleteInHierarchyVariable) {
-					IEnumerable<SerializableReactiveProperty<bool>> observables = ParentNodesEnumerable().Select(uiActivator => uiActivator._deActiveComplete);
+				if (_enableDeActiveCompleteInHierarchyReactiveProperty) {
+					IEnumerable<ReactiveProperty<bool>> observables = ParentNodesEnumerable().Select(uiActivator => uiActivator._deActiveComplete);
 					// 부모중 하나라도 true면 true
 					_deActiveCompleteInHierarchyDisposable = Observable.CombineLatest(observables)
 					                                                   .Subscribe(values =>
@@ -303,19 +279,16 @@ namespace com.mutant.ugui
 				}
 			}
 		}
-#if ODIN_INSPECTOR
-		[ShowInInspector]
-#endif
-		public bool EnableDisplayStateInHierarchyVariable
+		public bool EnableDisplayStateInHierarchyReactiveProperty
 		{
-			get { return _enableDisplayStateInHierarchyVariable; }
+			get { return _enableDisplayStateInHierarchyReactiveProperty; }
 			set
 			{
-				_enableDisplayStateInHierarchyVariable = value;
+				_enableDisplayStateInHierarchyReactiveProperty = value;
 				if (Application.isPlaying == false) return;
 				_displayStateInHierarchyDisposable?.Dispose();
-				if (_enableDisplayStateInHierarchyVariable) {
-					IEnumerable<SerializableReactiveProperty<bool>> observables = ParentNodesEnumerable().Select(uiActivator => uiActivator._displayState);
+				if (_enableDisplayStateInHierarchyReactiveProperty) {
+					IEnumerable<ReactiveProperty<bool>> observables = ParentNodesEnumerable().Select(uiActivator => uiActivator._displayState);
 					// 부모중 하나라도 false면 false, 모든 부모가 true일때만 true
 					_displayStateInHierarchyDisposable = Observable.CombineLatest(observables)
 					                                               .Subscribe(values =>
@@ -326,65 +299,38 @@ namespace com.mutant.ugui
 			}
 		}
 
-#if ODIN_INSPECTOR
-		[ShowInInspector, HideInEditorMode]
-#endif
 		public ReadOnlyReactiveProperty<bool> ActiveState
 		{
 			get { return _activeState; }
 		}
-#if ODIN_INSPECTOR
-		[ShowInInspector, HideInEditorMode]
-#endif
 		public ReadOnlyReactiveProperty<AnimationState> AnimationState_
 		{
 			get { return _animationState; }
 		}
-#if ODIN_INSPECTOR
-		[ShowInInspector, HideInEditorMode]
-#endif
 		public ReadOnlyReactiveProperty<bool> ActiveComplete
 		{
 			get { return _activeComplete; }
 		}
-#if ODIN_INSPECTOR
-		[ShowInInspector, HideInEditorMode]
-#endif
 		public ReadOnlyReactiveProperty<bool> DeActiveComplete
 		{
 			get { return _deActiveComplete; }
 		}
-#if ODIN_INSPECTOR
-		[ShowInInspector, HideInEditorMode]
-#endif
 		public ReadOnlyReactiveProperty<bool> DisplayState
 		{
 			get { return _displayState; }
 		}
-#if ODIN_INSPECTOR
-		[ShowInInspector, HideInEditorMode]
-#endif
 		public ReadOnlyReactiveProperty<bool> ActiveStateInHierarchy
 		{
 			get { return _activeStateInHierarchy; }
 		}
-#if ODIN_INSPECTOR
-		[ShowInInspector, HideInEditorMode]
-#endif
 		public ReadOnlyReactiveProperty<bool> ActiveCompleteInHierarchy
 		{
 			get { return _activeCompleteInHierarchy; }
 		}
-#if ODIN_INSPECTOR
-		[ShowInInspector, HideInEditorMode]
-#endif
 		public ReadOnlyReactiveProperty<bool> DeActiveCompleteInHierarchy
 		{
 			get { return _deActiveCompleteInHierarchy; }
 		}
-#if ODIN_INSPECTOR
-		[ShowInInspector, HideInEditorMode]
-#endif
 		public ReadOnlyReactiveProperty<bool> DisplayStateInHierarchy
 		{
 			get { return _displayStateInHierarchy; }
@@ -481,57 +427,27 @@ namespace com.mutant.ugui
 		List<HideAnimation> _hideAnimations = new List<HideAnimation>();
 
 		// - Core -
-#if ODIN_INSPECTOR
-		[HideInPlayMode]
-#endif
 		[SerializeField] bool _startActiveState = true;
-#if ODIN_INSPECTOR
-		[HideInInspector]
-#endif
 		[SerializeField] bool _visible = true;
-#if ODIN_INSPECTOR
-		[HideInInspector]
-#endif
 		[SerializeField] bool _raycastable = true;
-#if ODIN_INSPECTOR
-		[HideInInspector]
-#endif
 		[SerializeField] bool _interactable = true;
-#if ODIN_INSPECTOR
-		[HideInInspector]
-#endif
-		[SerializeField, Range(0.0f, 1.0f)] float _fade = 1f;
-#if ODIN_INSPECTOR
-		[HideInInspector]
-#endif
+		[SerializeField] float _fade = 1f;
 		[SerializeField] bool _disableRaycastWhileAnimation = true;
-#if ODIN_INSPECTOR
-		[HideInInspector]
-#endif
-		[SerializeField] bool _enableActiveStateInHierarchyVariable;
-#if ODIN_INSPECTOR
-		[HideInInspector]
-#endif
-		[SerializeField] bool _enableActiveCompleteInHierarchyVariable;
-#if ODIN_INSPECTOR
-		[HideInInspector]
-#endif
-		[SerializeField] bool _enableDeActiveCompleteInHierarchyVariable;
-#if ODIN_INSPECTOR
-		[HideInInspector]
-#endif
-		[SerializeField] bool _enableDisplayStateInHierarchyVariable;
+		[SerializeField] bool _enableActiveStateInHierarchyReactiveProperty;
+		[SerializeField] bool _enableActiveCompleteInHierarchyReactiveProperty;
+		[SerializeField] bool _enableDeActiveCompleteInHierarchyReactiveProperty;
+		[SerializeField] bool _enableDisplayStateInHierarchyReactiveProperty;
 
-		SerializableReactiveProperty<bool> _activeState = new SerializableReactiveProperty<bool>();
-		SerializableReactiveProperty<AnimationState> _animationState = new SerializableReactiveProperty<AnimationState>();
-		SerializableReactiveProperty<bool> _activeComplete = new SerializableReactiveProperty<bool>();
-		SerializableReactiveProperty<bool> _deActiveComplete = new SerializableReactiveProperty<bool>();
-		SerializableReactiveProperty<bool> _displayState = new SerializableReactiveProperty<bool>(); //실질적으로 눈에 보이는지
+		[SerializeField] SerializableReactiveProperty<bool> _activeState = new SerializableReactiveProperty<bool>();
+		[SerializeField] SerializableReactiveProperty<AnimationState> _animationState = new SerializableReactiveProperty<AnimationState>();
+		[SerializeField] SerializableReactiveProperty<bool> _activeComplete = new SerializableReactiveProperty<bool>();
+		[SerializeField] SerializableReactiveProperty<bool> _deActiveComplete = new SerializableReactiveProperty<bool>();
+		[SerializeField] SerializableReactiveProperty<bool> _displayState = new SerializableReactiveProperty<bool>(); //실질적으로 눈에 보이는지
 
-		SerializableReactiveProperty<bool> _activeStateInHierarchy = new SerializableReactiveProperty<bool>(); // 모든 부모가 true일때만 true
-		SerializableReactiveProperty<bool> _activeCompleteInHierarchy = new SerializableReactiveProperty<bool>(); // 모든 부모가 true일때만 true
-		SerializableReactiveProperty<bool> _deActiveCompleteInHierarchy = new SerializableReactiveProperty<bool>(); // 부모중 하나라도 true면 true
-		SerializableReactiveProperty<bool> _displayStateInHierarchy = new SerializableReactiveProperty<bool>(); // 부모중 하나라도 false면 false, 모든 부모가 true일때만 true
+		[SerializeField] SerializableReactiveProperty<bool> _activeStateInHierarchy = new SerializableReactiveProperty<bool>(); // 모든 부모가 true일때만 true
+		[SerializeField] SerializableReactiveProperty<bool> _activeCompleteInHierarchy = new SerializableReactiveProperty<bool>(); // 모든 부모가 true일때만 true
+		[SerializeField] SerializableReactiveProperty<bool> _deActiveCompleteInHierarchy = new SerializableReactiveProperty<bool>(); // 부모중 하나라도 true면 true
+		[SerializeField] SerializableReactiveProperty<bool> _displayStateInHierarchy = new SerializableReactiveProperty<bool>(); // 부모중 하나라도 false면 false, 모든 부모가 true일때만 true
 
 		IDisposable _activeStateInHierarchyDisposable;
 		IDisposable _activeCompleteInHierarchyDisposable;
@@ -548,7 +464,7 @@ namespace com.mutant.ugui
 		}
 		void UpdateRaycastable() {
 			if (_disableRaycastWhileAnimation) {
-				if (_animationState.Value == AnimationState.Activating || _animationState.Value == AnimationState.Deactivating) {
+				if (Application.isPlaying && _animationState.Value == AnimationState.Activating || _animationState.Value == AnimationState.Deactivating) {
 					CanvasGroup.blocksRaycasts = false;
 				}
 				else {
@@ -560,10 +476,10 @@ namespace com.mutant.ugui
 			}
 		}
 		void UpdateStateInHierarchyVariables() { // 부모를 고려해야하는 함수 이므로 TreeNode 초기화 후에 사용해야함
-			EnableActiveStateInHierarchyVariable = _enableActiveStateInHierarchyVariable;
-			EnableActiveCompleteInHierarchyVariable = _enableActiveCompleteInHierarchyVariable;
-			EnableDeActiveCompleteInHierarchyVariable = _enableDeActiveCompleteInHierarchyVariable;
-			EnableDisplayStateInHierarchyVariable = _enableDisplayStateInHierarchyVariable;
+			EnableActiveStateInHierarchyReactiveProperty = _enableActiveStateInHierarchyReactiveProperty;
+			EnableActiveCompleteInHierarchyReactiveProperty = _enableActiveCompleteInHierarchyReactiveProperty;
+			EnableDeActiveCompleteInHierarchyReactiveProperty = _enableDeActiveCompleteInHierarchyReactiveProperty;
+			EnableDisplayStateInHierarchyReactiveProperty = _enableDisplayStateInHierarchyReactiveProperty;
 		}
 
 		// - CancellationToken Utility -

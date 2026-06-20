@@ -1,13 +1,48 @@
 <ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <ui:VisualElement style="flex-grow: 1; flex-direction: row;">
+    <ui:Toggle label="Start Active State" name="StartActiveStateToggle"/>
+    <ui:Toggle label="Visible" name="VisibleToggle"/>
+    <ui:Toggle label="Raycastable" name="RaycastableToggle"/>
+    <ui:Toggle label="Interactable" name="InteractableToggle"/>
+    <ui:VisualElement style="flex-grow: 0; flex-direction: row; flex-shrink: 1;">
+        <ui:Slider label="Fade" value="1.38" high-value="1" name="FadeSlider" style="flex-grow: 1; justify-content: space-between;"/>
+        <ui:FloatField label="" value="1" name="FadeFloatField" style="align-items: center; justify-content: space-between; width: 100px; min-width: 40px; max-width: 40px;"/>
+    </ui:VisualElement>
+    <ui:Toggle label="DisableRaycastWhileAnimation" name="DisableRaycastWhileAnimationToggle"/>
+    <ui:VisualElement style="flex-grow: 0; flex-direction: row;">
         <ui:Button text="Active" name="ActiveButton"/>
         <ui:Button text="DeActive" name="DeActiveButton"/>
     </ui:VisualElement>
+    <ui:Foldout text="ReactiveProperty" name="ReactivePropertyFoldout" value="true">
+        <ui:Toggle label="ActiveState" name="ActiveStateToggle" enabled="false"/>
+        <ui:EnumField label="AnimationState" value="ActiveComplete" type="com.mutant.ugui.UIActivator+AnimationState, Mutant.UGUI" enabled="false" name="AnimationStateEnumField"/>
+        <ui:Toggle label="ActiveComplete" name="ActiveCompleteToggle" enabled="false"/>
+        <ui:Toggle label="DeActiveComplete" name="DeActiveCompleteToggle" enabled="false"/>
+        <ui:Toggle label="DisplayState" name="DisplayStateToggle" enabled="false"/>
+    </ui:Foldout>
+    <ui:Foldout text="Additional ReactiveProperty" name="AdditionalReactivePropertyFoldout" value="true">
+        <ui:Foldout text="ActiveStateInHierarchy" name="Foldout">
+            <ui:Toggle label="Enable" name="EnableActiveStateInHierarchyReactivePropertyToggle"/>
+            <ui:Toggle label="Value" name="ActiveStateInHierarchyValueToggle" enabled="false"/>
+        </ui:Foldout>
+        <ui:Foldout text="ActiveCompleteInHierarchy">
+            <ui:Toggle label="Enable" name="EnableActiveCompleteInHierarchyReactivePropertyToggle"/>
+            <ui:Toggle label="Value" name="ActiveCompleteInHierarchyValueToggle" enabled="false"/>
+        </ui:Foldout>
+        <ui:Foldout text="DeActiveCompleteInHierarchy">
+            <ui:Toggle label="Enable" name="EnableDeActiveCompleteInHierarchyReactivePropertyToggle"/>
+            <ui:Toggle label="Value" name="DeActiveCompleteInHierarchyValueToggle" enabled="false"/>
+        </ui:Foldout>
+        <ui:Foldout text="DisplayStateInHierarchy">
+            <ui:Toggle label="Enable" name="EnableDisplayStateInHierarchyReactivePropertyToggle"/>
+            <ui:Toggle label="Value" name="DisplayStateInHierarchyValueToggle" enabled="false"/>
+        </ui:Foldout>
+    </ui:Foldout>
     <ui:Foldout text="Add Animation Utility" value="true" name="">
         <ui:Foldout text="Dotween" value="true" name="Foldout">
             <ui:Button text="Add Fade" name="DotweenAddFadeButton"/>
-            <ui:Button text="Add Scale" name="DotweenAddScaleButton"/>
-            <ui:Button text="Add Slide" name="DotweenAddSlideButton"/>
+            <ui:Button text="Add Scale" name="DotweenAddScaleButton">
+                <ui:Button text="Add Slide" name="DotweenAddSlideButton"/>
+            </ui:Button>
         </ui:Foldout>
         <ui:Foldout text="LitMotion" value="true">
             <ui:Button text="Add Fade" name="LitMotionAddFadeButton"/>
