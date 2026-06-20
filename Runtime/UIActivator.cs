@@ -7,8 +7,6 @@ using com.mutant.ugui.UIAnimations;
 using Cysharp.Threading.Tasks;
 using R3;
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.UI;
 #if ODIN_INSPECTOR
 using Sirenix.OdinInspector;
 #endif
@@ -17,111 +15,126 @@ namespace com.mutant.ugui
 {
 	[RequireComponent(typeof(Canvas))]
 	[RequireComponent(typeof(CanvasGroup))]
-	[RequireComponent(typeof(BaseRaycaster))]
+	[DefaultExecutionOrder(-100)]
 	[DisallowMultipleComponent]
 	public class UIActivator : TreeNode<UIActivator>
 	{
-		public enum State
+		public enum AnimationState
 		{
-			ActiveAnimation,
-			Active,
-			DeactiveAnimation,
-			DeActive,
+			Activating,
+			ActiveComplete,
+			Deactivating,
+			DeactiveComplete,
 		}
 
 		// ===================== Public API =====================
 
-		public async UniTask ActiveAsync(bool forceExecute = false, CancelBehavior cancelBehaviour = CancelBehavior.Cancel, CancellationToken cancellationToken = default) {
-			if (forceExecute == false && (_state.Value == State.Active || _state.Value == State.ActiveAnimation)) {
+		public async UniTask ActiveAsync(bool forceExecute = false, CancelBehavior cancelBehaviour = CancelBehavior.RollBack, CancellationToken cancellationToken = default) {
+			if (forceExecute == false && _activeState.CurrentValue) {
 				return;
 			}
 
 			ShowAnimation[] showAnimations = _showAnimations.ToArray(); // 원본 변경을 방지하기 위해 복사본
+			if (showAnimations.Any()) {
+				TryCancelAndDisposeAnimation();
+				AllocateToRecentShowHideCTS(cancellationToken);
+				try {
+					_activeState.Value = true;
+					_animationState.Value = AnimationState.Activating;
 
-			if (showAnimations.Any() == false) {
+					Canvas.enabled = true;
+					UpdateRaycastable();
+
+					UniTask[] showAnimationTasks = new UniTask[showAnimations.Length];
+					for (int i = 0; i < showAnimations.Length; i++) {
+						int j = i;
+						showAnimations[j].CaptureCurrent(); // 정상 상태 캡처
+						showAnimationTasks[j] = showAnimations[j].ExecuteAsync(_recentShowHideCTS.Token);
+					}
+					await UniTask.WhenAll(showAnimationTasks);
+
+					_animationState.Value = AnimationState.ActiveComplete;
+				}
+				catch (OperationCanceledException e) {
+					if (cancelBehaviour == CancelBehavior.RollBack) {
+						DeActiveImmediate();
+					}
+					else if (cancelBehaviour == CancelBehavior.Complete) {
+						ActiveImmediate();
+					}
+					throw e;
+				}
+				finally {
+					for (int i = 0; i < showAnimations.Length; i++) showAnimations[i].ApplyCaptured();
+					UpdateRaycastable();
+				}
+			}
+			else {
 				ActiveImmediate();
-				return;
-			}
-
-			TryCancelAndDisposeAnimation();
-			AllocateToRecentShowHideCTS(cancellationToken);
-
-			try {
-				_state.Value = State.ActiveAnimation;
-
-				UniTask[] showAnimationTasks = new UniTask[showAnimations.Length];
-				for (int i = 0; i < showAnimations.Length; i++) {
-					int j = i;
-					showAnimations[j].CaptureCurrent(); // 정상 상태 캡처
-					showAnimationTasks[j] = showAnimations[j].ExecuteAsync(_recentShowHideCTS.Token);
-				}
-
-				await UniTask.WhenAll(showAnimationTasks);
-
-				for (int i = 0; i < showAnimations.Length; i++) showAnimations[i].ApplyCaptured();
-				_state.Value = State.Active;
-			}
-			catch (OperationCanceledException e) {
-				for (int i = 0; i < showAnimations.Length; i++) showAnimations[i].ApplyCaptured();
-				if (cancelBehaviour == CancelBehavior.Complete) {
-					_state.Value = State.Active;
-				}
-				else if (cancelBehaviour == CancelBehavior.Cancel) {
-					_state.Value = State.DeActive;
-				}
-				throw e;
 			}
 		}
-		public async UniTask DeActiveAsync(bool forceExecute = false, CancelBehavior cancelBehaviour = CancelBehavior.Complete, CancellationToken cancellationToken = default) {
-			if (forceExecute == false && (_state.Value == State.DeActive || _state.Value == State.DeactiveAnimation)) {
+		public async UniTask DeActiveAsync(bool forceExecute = false, CancelBehavior cancelBehaviour = CancelBehavior.RollBack, CancellationToken cancellationToken = default) {
+			if (forceExecute == false && _activeState.CurrentValue == false) {
 				return;
 			}
 
 			HideAnimation[] hideAnimations = _hideAnimations.ToArray(); // 원본 변경을 방지하기 위해 복사본
 
-			if (hideAnimations.Any() == false) {
+			if (hideAnimations.Any()) {
+				TryCancelAndDisposeAnimation();
+				AllocateToRecentShowHideCTS(cancellationToken);
+				try {
+					_activeState.Value = false;
+					_animationState.Value = AnimationState.Deactivating;
+
+					Canvas.enabled = true;
+					UpdateRaycastable();
+
+					UniTask[] hideAnimationTasks = new UniTask[hideAnimations.Length];
+					for (int i = 0; i < hideAnimations.Length; i++) {
+						int j = i;
+						hideAnimations[j].CaptureCurrent(); // 정상 상태 캡처
+						hideAnimationTasks[j] = hideAnimations[j].ExecuteAsync(_recentShowHideCTS.Token);
+					}
+
+					await UniTask.WhenAll(hideAnimationTasks);
+
+					Canvas.enabled = false;
+
+					_animationState.Value = AnimationState.DeactiveComplete;
+				}
+				catch (OperationCanceledException e) {
+					if (cancelBehaviour == CancelBehavior.RollBack) {
+						ActiveImmediate();
+					}
+					else if (cancelBehaviour == CancelBehavior.Complete) {
+						DeActiveImmediate();
+					}
+					throw e;
+				}
+				finally {
+					for (int i = 0; i < hideAnimations.Length; i++) hideAnimations[i].ApplyCaptured();
+					UpdateRaycastable();
+				}
+			}
+			else {
 				DeActiveImmediate();
-				return;
-			}
-
-			TryCancelAndDisposeAnimation();
-			AllocateToRecentShowHideCTS(cancellationToken);
-
-			try {
-				_state.Value = State.DeactiveAnimation;
-
-				UniTask[] hideAnimationTasks = new UniTask[hideAnimations.Length];
-				for (int i = 0; i < hideAnimations.Length; i++) {
-					int j = i;
-					hideAnimations[j].CaptureCurrent(); // 정상 상태 캡처
-					hideAnimationTasks[j] = hideAnimations[j].ExecuteAsync(_recentShowHideCTS.Token);
-				}
-
-				await UniTask.WhenAll(hideAnimationTasks);
-
-				for (int i = 0; i < hideAnimations.Length; i++) hideAnimations[i].ApplyCaptured();
-				_state.Value = State.DeActive;
-			}
-			catch (OperationCanceledException e) {
-				for (int i = 0; i < hideAnimations.Length; i++) hideAnimations[i].ApplyCaptured();
-				if (cancelBehaviour == CancelBehavior.Complete) {
-					_state.Value = State.DeActive;
-				}
-				else if (cancelBehaviour == CancelBehavior.Cancel) {
-					_state.Value = State.Active;
-				}
-				throw e;
 			}
 		}
 		public void ActiveImmediate() {
 			TryCancelAndDisposeAnimation();
-			_state.Value = State.Active;
+			Canvas.enabled = true;
+			_activeState.Value = true;
+			_animationState.Value = AnimationState.ActiveComplete;
 		}
 		public void DeActiveImmediate() {
 			TryCancelAndDisposeAnimation();
-			_state.Value = State.DeActive;
+			Canvas.enabled = false;
+			_activeState.Value = false;
+			_animationState.Value = AnimationState.DeactiveComplete;
 		}
-		public async UniTask ActiveAllChildAsync(bool forceExecute = false, CancelBehavior cancelBehaviour = CancelBehavior.Cancel, CancellationToken cancellationToken = default) {
+
+		public async UniTask ActiveWithChildrenAsync(bool forceExecute = false, CancelBehavior cancelBehaviour = CancelBehavior.RollBack, CancellationToken cancellationToken = default) {
 			int count = ChildNodesEnumerable().Count();
 			UniTask[] tasks = new UniTask[count];
 
@@ -131,7 +144,7 @@ namespace com.mutant.ugui
 			}
 			await UniTask.WhenAll(tasks);
 		}
-		public async UniTask DeActiveAllChildAsync(bool forceExecute = false, CancelBehavior cancelBehaviour = CancelBehavior.Cancel, CancellationToken cancellationToken = default) {
+		public async UniTask DeActiveWithChildrenAsync(bool forceExecute = false, CancelBehavior cancelBehaviour = CancelBehavior.Complete, CancellationToken cancellationToken = default) {
 			int count = ChildNodesEnumerable().Count();
 			UniTask[] tasks = new UniTask[count];
 
@@ -141,27 +154,16 @@ namespace com.mutant.ugui
 			}
 			await UniTask.WhenAll(tasks);
 		}
-		public void ActiveAllChildImmediate() {
+		public void ActiveWithChildrenImmediate() {
 			foreach (UIActivator eachUIActivator in ChildNodesEnumerable()) {
 				eachUIActivator.ActiveImmediate();
 			}
 		}
-		public void DeDeActiveAllChildImmediate() {
+		public void DeActiveWithChildrenImmediate() {
 			foreach (UIActivator eachUIActivator in ChildNodesEnumerable()) {
 				eachUIActivator.DeActiveImmediate();
 			}
 		}
-
-#if UNITY_EDITOR
-		public void ActiveInEditor() {
-			SetVisibility(true);
-			SetInteractable(true);
-		}
-		public void DeActiveInEditor() {
-			SetVisibility(false);
-			SetInteractable(false);
-		}
-#endif
 
 		public void RegisterShowAnimation(ShowAnimation showAnimation) {
 			_showAnimations.Add(showAnimation);
@@ -178,12 +180,217 @@ namespace com.mutant.ugui
 
 		// ===================== Public Property =====================
 
-		public bool Interactable
+#if ODIN_INSPECTOR
+		[ShowInInspector]
+#endif
+		public bool Visible
 		{
-			get { return _canvasGroup.interactable; }
-			set { _canvasGroup.interactable = value; }
+			get { return _visible; }
+			set
+			{
+				_visible = value;
+				UpdateVisbleAndFade();
+			}
+		}
+#if ODIN_INSPECTOR
+		[ShowInInspector]
+#endif
+		public bool Raycastable
+		{
+			get { return _raycastable; }
+			set
+			{
+				_raycastable = value;
+				UpdateRaycastable();
+			}
 		}
 
+#if ODIN_INSPECTOR
+		[ShowInInspector]
+#endif
+		public bool Interactable
+		{
+			get { return _interactable; }
+			set
+			{
+				_interactable = value;
+				CanvasGroup.interactable = _interactable;
+			}
+		}
+#if ODIN_INSPECTOR
+		[ShowInInspector]
+#endif
+		public float Fade
+		{
+			get { return _fade; }
+			set
+			{
+				_fade = Mathf.Clamp(value, 0.0f, 1.0f);
+				UpdateVisbleAndFade();
+			}
+		}
+#if ODIN_INSPECTOR
+		[ShowInInspector]
+#endif
+		public bool DisableRaycastWhileAnimation
+		{
+			get { return _disableRaycastWhileAnimation; }
+			set { _disableRaycastWhileAnimation = value; }
+		}
+#if ODIN_INSPECTOR
+		[ShowInInspector]
+#endif
+		public bool EnableActiveStateInHierarchyVariable
+		{
+			get { return _enableActiveStateInHierarchyVariable; }
+			set
+			{
+				_enableActiveStateInHierarchyVariable = value;
+				if (Application.isPlaying == false) return;
+				_activeStateInHierarchyDisposable?.Dispose();
+				if (_enableActiveStateInHierarchyVariable) {
+					IEnumerable<SerializableReactiveProperty<bool>> observables = ParentNodesEnumerable().Select(uiActivator => uiActivator._activeState);
+					// 모든 부모가 true일때만 true
+					_activeStateInHierarchyDisposable = Observable.CombineLatest(observables)
+					                                              .Subscribe(values =>
+					                                               {
+						                                               _activeStateInHierarchy.Value = values.All(x => x);
+					                                               });
+				}
+			}
+		}
+#if ODIN_INSPECTOR
+		[ShowInInspector]
+#endif
+		public bool EnableActiveCompleteInHierarchyVariable
+		{
+			get { return _enableActiveCompleteInHierarchyVariable; }
+			set
+			{
+				_enableActiveCompleteInHierarchyVariable = value;
+				if (Application.isPlaying == false) return;
+				_activeCompleteInHierarchyDisposable?.Dispose();
+				if (_enableActiveCompleteInHierarchyVariable) {
+					IEnumerable<SerializableReactiveProperty<bool>> observables = ParentNodesEnumerable().Select(uiActivator => uiActivator._activeComplete);
+					// 모든 부모가 true일때만 true
+					_activeCompleteInHierarchyDisposable = Observable.CombineLatest(observables)
+					                                                 .Subscribe(values =>
+					                                                  {
+						                                                  _activeCompleteInHierarchy.Value = values.All(x => x);
+					                                                  });
+				}
+			}
+		}
+#if ODIN_INSPECTOR
+		[ShowInInspector]
+#endif
+		public bool EnableDeActiveCompleteInHierarchyVariable
+		{
+			get { return _enableDeActiveCompleteInHierarchyVariable; }
+			set
+			{
+				_enableDeActiveCompleteInHierarchyVariable = value;
+				if (Application.isPlaying == false) return;
+				_deActiveCompleteInHierarchyDisposable?.Dispose();
+				if (_enableDeActiveCompleteInHierarchyVariable) {
+					IEnumerable<SerializableReactiveProperty<bool>> observables = ParentNodesEnumerable().Select(uiActivator => uiActivator._deActiveComplete);
+					// 부모중 하나라도 true면 true
+					_deActiveCompleteInHierarchyDisposable = Observable.CombineLatest(observables)
+					                                                   .Subscribe(values =>
+					                                                    {
+						                                                    _deActiveCompleteInHierarchy.Value = values.Any(x => x);
+					                                                    });
+				}
+			}
+		}
+#if ODIN_INSPECTOR
+		[ShowInInspector]
+#endif
+		public bool EnableDisplayStateInHierarchyVariable
+		{
+			get { return _enableDisplayStateInHierarchyVariable; }
+			set
+			{
+				_enableDisplayStateInHierarchyVariable = value;
+				if (Application.isPlaying == false) return;
+				_displayStateInHierarchyDisposable?.Dispose();
+				if (_enableDisplayStateInHierarchyVariable) {
+					IEnumerable<SerializableReactiveProperty<bool>> observables = ParentNodesEnumerable().Select(uiActivator => uiActivator._displayState);
+					// 부모중 하나라도 false면 false, 모든 부모가 true일때만 true
+					_displayStateInHierarchyDisposable = Observable.CombineLatest(observables)
+					                                               .Subscribe(values =>
+					                                                {
+						                                                _displayStateInHierarchy.Value = values.All(x => x);
+					                                                });
+				}
+			}
+		}
+
+#if ODIN_INSPECTOR
+		[ShowInInspector, HideInEditorMode]
+#endif
+		public ReadOnlyReactiveProperty<bool> ActiveState
+		{
+			get { return _activeState; }
+		}
+#if ODIN_INSPECTOR
+		[ShowInInspector, HideInEditorMode]
+#endif
+		public ReadOnlyReactiveProperty<AnimationState> AnimationState_
+		{
+			get { return _animationState; }
+		}
+#if ODIN_INSPECTOR
+		[ShowInInspector, HideInEditorMode]
+#endif
+		public ReadOnlyReactiveProperty<bool> ActiveComplete
+		{
+			get { return _activeComplete; }
+		}
+#if ODIN_INSPECTOR
+		[ShowInInspector, HideInEditorMode]
+#endif
+		public ReadOnlyReactiveProperty<bool> DeActiveComplete
+		{
+			get { return _deActiveComplete; }
+		}
+#if ODIN_INSPECTOR
+		[ShowInInspector, HideInEditorMode]
+#endif
+		public ReadOnlyReactiveProperty<bool> DisplayState
+		{
+			get { return _displayState; }
+		}
+#if ODIN_INSPECTOR
+		[ShowInInspector, HideInEditorMode]
+#endif
+		public ReadOnlyReactiveProperty<bool> ActiveStateInHierarchy
+		{
+			get { return _activeStateInHierarchy; }
+		}
+#if ODIN_INSPECTOR
+		[ShowInInspector, HideInEditorMode]
+#endif
+		public ReadOnlyReactiveProperty<bool> ActiveCompleteInHierarchy
+		{
+			get { return _activeCompleteInHierarchy; }
+		}
+#if ODIN_INSPECTOR
+		[ShowInInspector, HideInEditorMode]
+#endif
+		public ReadOnlyReactiveProperty<bool> DeActiveCompleteInHierarchy
+		{
+			get { return _deActiveCompleteInHierarchy; }
+		}
+#if ODIN_INSPECTOR
+		[ShowInInspector, HideInEditorMode]
+#endif
+		public ReadOnlyReactiveProperty<bool> DisplayStateInHierarchy
+		{
+			get { return _displayStateInHierarchy; }
+		}
+
+		// - Components -
 		public CanvasGroup CanvasGroup
 		{
 			get
@@ -200,63 +407,6 @@ namespace com.mutant.ugui
 				return _canvas;
 			}
 		}
-		public BaseRaycaster[] BaseRaycasters
-		{
-			get
-			{
-				if (_baseRaycasters == null) _baseRaycasters = GetComponents<BaseRaycaster>();
-				return _baseRaycasters;
-			}
-		}
-		public LayoutElement LayoutElement
-		{
-			get
-			{
-				if (_layoutElement == null) _layoutElement = GetComponent<LayoutElement>();
-				return _layoutElement;
-			}
-		}
-
-		public ReadOnlyReactiveProperty<State> State_
-		{
-			get { return _state; }
-		}
-		public ReadOnlyReactiveProperty<bool> Visibility
-		{
-			get { return _visibility; }
-		}
-		public ReadOnlyReactiveProperty<bool> ParentsVisibility
-		{
-			get { return _parentsVisibility; }
-		}
-		public ReadOnlyReactiveProperty<bool> VisibilityInHieraraky
-		{
-			get { return _visibilityInHieraraky; }
-		}
-		public ReadOnlyReactiveProperty<bool> Ready
-		{
-			get { return _ready; }
-		}
-		public ReadOnlyReactiveProperty<bool> ParentsReady
-		{
-			get { return _parentsReady; }
-		}
-		public ReadOnlyReactiveProperty<bool> ReadyInHieraraky
-		{
-			get { return _readyInHieraraky; }
-		}
-		public ReadOnlyReactiveProperty<bool> ActiveState
-		{
-			get { return _activeState; }
-		}
-		public ReadOnlyReactiveProperty<bool> ParentsActiveState
-		{
-			get { return _parentsActiveState; }
-		}
-		public ReadOnlyReactiveProperty<bool> ActiveStateInHieraraky
-		{
-			get { return _activeStateInHieraraky; }
-		}
 		public IReadOnlyList<ShowAnimation> ShowAnimations
 		{
 			get { return _showAnimations; }
@@ -268,165 +418,8 @@ namespace com.mutant.ugui
 
 		// ===================== Handlers =====================
 
-		// ===================== Internals =====================
-
-#if ODIN_INSPECTOR
-		[HideInPlayMode]
-#endif
-		[SerializeField]
-		bool _startActiveState = true;
-
-#if ODIN_INSPECTOR
-		[SerializeField, FoldoutGroup("Debug", expanded: false), ReadOnly]
-#endif
-		SerializableReactiveProperty<State> _state = new SerializableReactiveProperty<State>();
-#if ODIN_INSPECTOR
-		[SerializeField, FoldoutGroup("Debug", expanded: false), ReadOnly]
-#endif
-		SerializableReactiveProperty<bool> _visibility = new SerializableReactiveProperty<bool>();
-#if ODIN_INSPECTOR
-		[SerializeField, FoldoutGroup("Debug", expanded: false), ReadOnly]
-#endif
-		SerializableReactiveProperty<bool> _parentsVisibility = new SerializableReactiveProperty<bool>();
-#if ODIN_INSPECTOR
-		[SerializeField, FoldoutGroup("Debug", expanded: false), ReadOnly]
-#endif
-		SerializableReactiveProperty<bool> _visibilityInHieraraky = new SerializableReactiveProperty<bool>();
-#if ODIN_INSPECTOR
-		[SerializeField, FoldoutGroup("Debug", expanded: false), ReadOnly]
-#endif
-		SerializableReactiveProperty<bool> _ready = new SerializableReactiveProperty<bool>();
-#if ODIN_INSPECTOR
-		[SerializeField, FoldoutGroup("Debug", expanded: false), ReadOnly]
-#endif
-		SerializableReactiveProperty<bool> _parentsReady = new SerializableReactiveProperty<bool>();
-#if ODIN_INSPECTOR
-		[SerializeField, FoldoutGroup("Debug", expanded: false), ReadOnly]
-#endif
-		SerializableReactiveProperty<bool> _readyInHieraraky = new SerializableReactiveProperty<bool>();
-#if ODIN_INSPECTOR
-		[SerializeField, FoldoutGroup("Debug", expanded: false), ReadOnly]
-#endif
-		SerializableReactiveProperty<bool> _activeState = new SerializableReactiveProperty<bool>();
-#if ODIN_INSPECTOR
-		[SerializeField, FoldoutGroup("Debug", expanded: false), ReadOnly]
-#endif
-		SerializableReactiveProperty<bool> _parentsActiveState = new SerializableReactiveProperty<bool>();
-#if ODIN_INSPECTOR
-		[SerializeField, FoldoutGroup("Debug", expanded: false), ReadOnly]
-#endif
-		SerializableReactiveProperty<bool> _activeStateInHieraraky = new SerializableReactiveProperty<bool>();
-
-		CanvasGroup _canvasGroup;
-		Canvas _canvas;
-		BaseRaycaster[] _baseRaycasters;
-		LayoutElement _layoutElement;
-
-		List<ShowAnimation> _showAnimations = new List<ShowAnimation>();
-		List<HideAnimation> _hideAnimations = new List<HideAnimation>();
-
-		CompositeDisposable _compositeDisposable;
-		CancellationTokenSource _recentShowHideCTS;
-
-		protected override void Init() {
-			base.Init();
-
-			_compositeDisposable?.Dispose();
-			_compositeDisposable = new CompositeDisposable();
-
-			//핵심 변수들 업데이트
-			foreach (UIActivator uiActivator in ParentNodesEnumerable()) {
-				uiActivator._state.Subscribe(state =>
-				{
-					// //가시성 상태 업데이트
-					// _visibility.Value = _state.Value == State.Active ||
-					//                     _state.Value == State.ActiveAnimation ||
-					//                     _state.Value == State.DeactiveAnimation;
-					//
-					// _parentsVisibility.Value = ParentNodesEnumerable(false).All(eachUIActivator =>
-					// {
-					// 	return eachUIActivator._state.Value == State.Active ||
-					// 	       eachUIActivator._state.Value == State.ActiveAnimation ||
-					// 	       eachUIActivator._state.Value == State.DeactiveAnimation;
-					// });
-					//
-					// _visibilityInHieraraky.Value = _visibility.Value && _parentsVisibility.Value;
-					//
-					// //준비완료 상태 업데이트
-					// _ready.Value = _state.Value == State.Active;
-					//
-					// _parentsReady.Value = ParentNodesEnumerable(false).All(eachUIActivator => eachUIActivator._state.Value == State.Active);
-					//
-					// _readyInHieraraky.Value = _ready.Value && _parentsReady.Value;
-					//
-					// //ActiveState 상태 업데이트
-					// _activeState.Value = _state.Value == State.Active || _state.Value == State.ActiveAnimation;
-					//
-					// _parentsActiveState.Value = ParentNodesEnumerable(false).All(eachUIActivator => eachUIActivator._state.Value == State.Active || eachUIActivator._state.Value == State.ActiveAnimation);
-					//
-					// _activeStateInHieraraky.Value = _activeState.Value && _parentsActiveState.Value;
-
-					// === 위 코드를 AI로 최적화한 코드 ===
-					bool IsVisibleState(State s) {
-						switch (s) {
-							case State.Active:
-							case State.ActiveAnimation:
-							case State.DeactiveAnimation:
-								return true;
-							default:
-								return false;
-						}
-					}
-
-					bool IsReadyState(State s) {
-						return s == State.Active;
-					}
-
-					bool IsActiveState(State s) {
-						return s == State.Active || s == State.ActiveAnimation;
-					}
-
-					State selfState = _state.Value;
-
-					bool selfVisible = IsVisibleState(selfState);
-					bool selfReady = IsReadyState(selfState);
-					bool selfActive = IsActiveState(selfState);
-
-					List<UIActivator> parents = ParentNodesEnumerable(false).ToList();
-
-					bool parentsVisible = true;
-					bool parentsReady = true;
-					bool parentsActive = true;
-
-					foreach (UIActivator parent in parents) {
-						State ps = parent._state.Value;
-
-						if (parentsVisible && !IsVisibleState(ps)) parentsVisible = false;
-						if (parentsReady && !IsReadyState(ps)) parentsReady = false;
-						if (parentsActive && !IsActiveState(ps)) parentsActive = false;
-
-						if (!parentsVisible && !parentsReady && !parentsActive) break;
-					}
-
-					_visibility.Value = selfVisible;
-					_parentsVisibility.Value = parentsVisible;
-					_visibilityInHieraraky.Value = selfVisible && parentsVisible;
-
-					_ready.Value = selfReady;
-					_parentsReady.Value = parentsReady;
-					_readyInHieraraky.Value = selfReady && parentsReady;
-
-					_activeState.Value = selfActive;
-					_parentsActiveState.Value = parentsActive;
-					_activeStateInHieraraky.Value = selfActive && parentsActive;
-				}).AddTo(_compositeDisposable);
-			}
-
-			//Visibility 기능 구현
-			_visibilityInHieraraky.Subscribe(SetVisibility).AddTo(_compositeDisposable);
-
-			//Interactable 기능 구현
-			_readyInHieraraky.Subscribe(SetInteractable).AddTo(_compositeDisposable);
+		protected override void Awake() {
+			base.Awake();
 
 			if (_startActiveState) {
 				ActiveImmediate();
@@ -434,31 +427,157 @@ namespace com.mutant.ugui
 			else {
 				DeActiveImmediate();
 			}
+			Visible = _visible;
+			Raycastable = _raycastable;
+			Interactable = _interactable;
+			Fade = _fade;
+			DisableRaycastWhileAnimation = _disableRaycastWhileAnimation;
+
+			//Ready
+			_activeState.CombineLatest(_animationState, (active, animationState) => active && animationState == AnimationState.ActiveComplete)
+			            .Subscribe(activeComplete =>
+			             {
+				             _activeComplete.Value = activeComplete;
+			             })
+			            .AddTo(gameObject);
+
+			_activeState.CombineLatest(_animationState, (active, animationState) => active == false && animationState == AnimationState.DeactiveComplete)
+			            .Subscribe(deActiveComplete =>
+			             {
+				             _deActiveComplete.Value = deActiveComplete;
+			             })
+			            .AddTo(gameObject);
+
+			_animationState.Subscribe(animationState =>
+			{
+				switch (animationState) {
+					case AnimationState.Activating:
+					case AnimationState.ActiveComplete:
+					case AnimationState.Deactivating:
+						_displayState.Value = true;
+						break;
+					case AnimationState.DeactiveComplete:
+						_displayState.Value = false;
+						break;
+				}
+			}).AddTo(gameObject);
+		}
+		protected override void Start() {
+			base.Start();
+			UpdateStateInHierarchyVariables(); // 부모를 고려해야하는 함수 이므로 TreeNode 초기화 후에 사용
+		}
+		protected override void OnTreeNodeInited() {
+			if (IsStarted) {
+				UpdateStateInHierarchyVariables(); // 부모를 고려해야하는 함수 이므로 TreeNode 상태 변경될때도 사용
+			}
 		}
 
+
+		// ===================== Internals =====================
+		// - Components -
+		CanvasGroup _canvasGroup;
+		Canvas _canvas;
+		List<ShowAnimation> _showAnimations = new List<ShowAnimation>();
+		List<HideAnimation> _hideAnimations = new List<HideAnimation>();
+
+		// - Core -
+#if ODIN_INSPECTOR
+		[HideInPlayMode]
+#endif
+		[SerializeField] bool _startActiveState = true;
+#if ODIN_INSPECTOR
+		[HideInInspector]
+#endif
+		[SerializeField] bool _visible = true;
+#if ODIN_INSPECTOR
+		[HideInInspector]
+#endif
+		[SerializeField] bool _raycastable = true;
+#if ODIN_INSPECTOR
+		[HideInInspector]
+#endif
+		[SerializeField] bool _interactable = true;
+#if ODIN_INSPECTOR
+		[HideInInspector]
+#endif
+		[SerializeField, Range(0.0f, 1.0f)] float _fade = 1f;
+#if ODIN_INSPECTOR
+		[HideInInspector]
+#endif
+		[SerializeField] bool _disableRaycastWhileAnimation = true;
+#if ODIN_INSPECTOR
+		[HideInInspector]
+#endif
+		[SerializeField] bool _enableActiveStateInHierarchyVariable;
+#if ODIN_INSPECTOR
+		[HideInInspector]
+#endif
+		[SerializeField] bool _enableActiveCompleteInHierarchyVariable;
+#if ODIN_INSPECTOR
+		[HideInInspector]
+#endif
+		[SerializeField] bool _enableDeActiveCompleteInHierarchyVariable;
+#if ODIN_INSPECTOR
+		[HideInInspector]
+#endif
+		[SerializeField] bool _enableDisplayStateInHierarchyVariable;
+
+		SerializableReactiveProperty<bool> _activeState = new SerializableReactiveProperty<bool>();
+		SerializableReactiveProperty<AnimationState> _animationState = new SerializableReactiveProperty<AnimationState>();
+		SerializableReactiveProperty<bool> _activeComplete = new SerializableReactiveProperty<bool>();
+		SerializableReactiveProperty<bool> _deActiveComplete = new SerializableReactiveProperty<bool>();
+		SerializableReactiveProperty<bool> _displayState = new SerializableReactiveProperty<bool>(); //실질적으로 눈에 보이는지
+
+		SerializableReactiveProperty<bool> _activeStateInHierarchy = new SerializableReactiveProperty<bool>(); // 모든 부모가 true일때만 true
+		SerializableReactiveProperty<bool> _activeCompleteInHierarchy = new SerializableReactiveProperty<bool>(); // 모든 부모가 true일때만 true
+		SerializableReactiveProperty<bool> _deActiveCompleteInHierarchy = new SerializableReactiveProperty<bool>(); // 부모중 하나라도 true면 true
+		SerializableReactiveProperty<bool> _displayStateInHierarchy = new SerializableReactiveProperty<bool>(); // 부모중 하나라도 false면 false, 모든 부모가 true일때만 true
+
+		IDisposable _activeStateInHierarchyDisposable;
+		IDisposable _activeCompleteInHierarchyDisposable;
+		IDisposable _deActiveCompleteInHierarchyDisposable;
+		IDisposable _displayStateInHierarchyDisposable;
+
+		void UpdateVisbleAndFade() {
+			if (_visible) {
+				CanvasGroup.alpha = _fade;
+			}
+			else {
+				CanvasGroup.alpha = 0f;
+			}
+		}
+		void UpdateRaycastable() {
+			if (_disableRaycastWhileAnimation) {
+				if (_animationState.Value == AnimationState.Activating || _animationState.Value == AnimationState.Deactivating) {
+					CanvasGroup.blocksRaycasts = false;
+				}
+				else {
+					CanvasGroup.blocksRaycasts = _raycastable;
+				}
+			}
+			else {
+				CanvasGroup.blocksRaycasts = _raycastable;
+			}
+		}
+		void UpdateStateInHierarchyVariables() { // 부모를 고려해야하는 함수 이므로 TreeNode 초기화 후에 사용해야함
+			EnableActiveStateInHierarchyVariable = _enableActiveStateInHierarchyVariable;
+			EnableActiveCompleteInHierarchyVariable = _enableActiveCompleteInHierarchyVariable;
+			EnableDeActiveCompleteInHierarchyVariable = _enableDeActiveCompleteInHierarchyVariable;
+			EnableDisplayStateInHierarchyVariable = _enableDisplayStateInHierarchyVariable;
+		}
+
+		// - CancellationToken Utility -
+		CancellationTokenSource _recentShowHideCTS;
 		void AllocateToRecentShowHideCTS(CancellationToken cancellationToken) {
 			_recentShowHideCTS = CancellationTokenSource.CreateLinkedTokenSource(destroyCancellationToken, cancellationToken);
 		}
 		void TryCancelAndDisposeAnimation() {
 			if (_recentShowHideCTS != null) {
-				_recentShowHideCTS.Cancel();
-				_recentShowHideCTS.Dispose();
+				CancellationTokenSource cts = _recentShowHideCTS;
 				_recentShowHideCTS = null;
+				cts.Cancel();
+				cts.Dispose();
 			}
-		}
-
-		void SetInteractable(bool interactable) {
-			CanvasGroup.blocksRaycasts = interactable;
-			if (BaseRaycasters != null && BaseRaycasters.Length != 0) {
-				foreach (BaseRaycaster baseRaycaster in BaseRaycasters) {
-					baseRaycaster.enabled = interactable;
-				}
-			}
-		}
-		void SetVisibility(bool visibility) {
-			if (Canvas) Canvas.enabled = visibility;
-
-			if (LayoutElement) LayoutElement.ignoreLayout = !visibility;
 		}
 	}
 }

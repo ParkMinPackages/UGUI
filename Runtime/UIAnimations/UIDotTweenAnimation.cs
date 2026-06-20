@@ -9,14 +9,14 @@ namespace com.mutant.ugui.UIAnimations
 	{
 		public abstract Tween CreateTween();
 		public override async UniTask ExecuteAsync(CancellationToken cancellationToken = default) {
-			await CreateTween().SetAutoKill(true).ToUniTask(TweenCancelBehaviour.Kill, cancellationToken);
+			await CreateTween().SetAutoKill(true).ToUniTask(TweenCancelBehaviour.KillAndCancelAwait, cancellationToken);
 		}
 	}
 	public abstract class UIDotTweenHideAnimation : HideAnimation
 	{
 		public abstract Tween CreateTween();
 		public override async UniTask ExecuteAsync(CancellationToken cancellationToken = default) {
-			await CreateTween().SetAutoKill(true).ToUniTask(TweenCancelBehaviour.Kill, cancellationToken);
+			await CreateTween().SetAutoKill(true).ToUniTask(TweenCancelBehaviour.KillAndCancelAwait, cancellationToken);
 		}
 	}
 }

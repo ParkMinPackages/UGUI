@@ -9,7 +9,7 @@ namespace com.mutant.ugui.UIAnimations
 	{
 		public abstract MotionHandle CreateMotion();
 		public override async UniTask ExecuteAsync(CancellationToken cancellationToken = default) {
-			await CreateMotion().ToUniTask(LitMotion.CancelBehavior.None, cancellationToken);
+			await CreateMotion().ToUniTask(LitMotion.CancelBehavior.Cancel, cancellationToken);
 		}
 	}
 
@@ -17,7 +17,7 @@ namespace com.mutant.ugui.UIAnimations
 	{
 		public abstract MotionHandle CreateMotion();
 		public override async UniTask ExecuteAsync(CancellationToken cancellationToken) {
-			await CreateMotion().ToUniTask(LitMotion.CancelBehavior.None, cancellationToken);
+			await CreateMotion().ToUniTask(LitMotion.CancelBehavior.Cancel, cancellationToken);
 		}
 	}
 }

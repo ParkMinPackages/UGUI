@@ -2,8 +2,7 @@
 {
 	public enum CancelBehavior : byte
 	{
-		None,
-		Cancel,
-		Complete
+		RollBack,
+		Complete,
 	}
 }

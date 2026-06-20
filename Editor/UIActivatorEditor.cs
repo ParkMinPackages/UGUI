@@ -68,7 +68,7 @@ namespace com.mutant.ugui.Editor
 				if (Application.isPlaying)
 					uiActivator.ActiveAsync(cancellationToken: Application.exitCancellationToken).Forget();
 				else
-					uiActivator.ActiveInEditor();
+					uiActivator.ActiveImmediate();
 			});
 
 			root.Q<Button>("DeActiveButton")?.RegisterCallback<ClickEvent>(_ =>
@@ -79,7 +79,7 @@ namespace com.mutant.ugui.Editor
 				if (Application.isPlaying)
 					uiActivator.DeActiveAsync(cancellationToken: Application.exitCancellationToken).Forget();
 				else
-					uiActivator.DeActiveInEditor();
+					uiActivator.DeActiveImmediate();
 			});
 
 #if DOTWEEN && UNITASK_DOTWEEN_SUPPORT
