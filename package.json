@@ -1,7 +1,7 @@
 {
   "name": "com.mutant.ugui",
   "displayName": "Mutant.UGUI",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "unity": "6000.5",
   "description": "\ubba4\ud134\ud2b8 UGUI \ud328\ud0a4\uc9c0",
   "dependencies": {

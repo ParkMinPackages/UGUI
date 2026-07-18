@@ -89,7 +89,6 @@ namespace com.mutant.ugui.Editor
 					return;
 
 				uiActivator.Visible = evt.newValue;
-				EditorUtility.SetDirty(uiActivator.gameObject);
 			});
 		}
 		void ImplementRaycastableToggle(VisualElement root) {
@@ -101,7 +100,6 @@ namespace com.mutant.ugui.Editor
 					return;
 
 				uiActivator.Raycastable = evt.newValue;
-				EditorUtility.SetDirty(uiActivator.gameObject);
 			});
 		}
 		void ImplementInteractableToggle(VisualElement root) {
@@ -113,7 +111,6 @@ namespace com.mutant.ugui.Editor
 					return;
 
 				uiActivator.Interactable = evt.newValue;
-				EditorUtility.SetDirty(uiActivator.gameObject);
 			});
 		}
 		void ImplementFadeSlider(VisualElement root) {
@@ -127,7 +124,6 @@ namespace com.mutant.ugui.Editor
 					return;
 
 				uiActivator.Fade = evt.newValue;
-				EditorUtility.SetDirty(uiActivator.gameObject);
 			});
 
 			FloatField floatField = root.Q<FloatField>("FadeFloatField");
@@ -138,7 +134,6 @@ namespace com.mutant.ugui.Editor
 					return;
 
 				uiActivator.Fade = evt.newValue;
-				EditorUtility.SetDirty(uiActivator.gameObject);
 			});
 		}
 		void ImplementDisableRaycastWhileAnimationToggle(VisualElement root) {
@@ -150,7 +145,6 @@ namespace com.mutant.ugui.Editor
 					return;
 
 				uiActivator.DisableRaycastWhileAnimation = evt.newValue;
-				EditorUtility.SetDirty(uiActivator.gameObject);
 			});
 		}
 
@@ -165,6 +159,8 @@ namespace com.mutant.ugui.Editor
 					uiActivator.ActiveAsync(cancellationToken: Application.exitCancellationToken).Forget();
 				else
 					uiActivator.ActiveImmediate();
+
+				EditorUtility.SetDirty(uiActivator.gameObject);
 			});
 
 			root.Q<Button>("DeActiveButton")?.RegisterCallback<ClickEvent>(_ =>
@@ -176,6 +172,8 @@ namespace com.mutant.ugui.Editor
 					uiActivator.DeActiveAsync(cancellationToken: Application.exitCancellationToken).Forget();
 				else
 					uiActivator.DeActiveImmediate();
+
+				EditorUtility.SetDirty(uiActivator.gameObject);
 			});
 
 #if DOTWEEN && UNITASK_DOTWEEN_SUPPORT
@@ -184,18 +182,21 @@ namespace com.mutant.ugui.Editor
 				UIActivator uiActivator = target as UIActivator;
 				uiActivator.GetOrAddComponent<UIDTFadeShowAnimation>();
 				uiActivator.GetOrAddComponent<UIDTFadeHideAnimation>();
+				EditorUtility.SetDirty(uiActivator.gameObject);
 			});
 			root.Q<Button>("DotweenAddScaleButton")?.RegisterCallback<ClickEvent>(_ =>
 			{
 				UIActivator uiActivator = target as UIActivator;
 				uiActivator.GetOrAddComponent<UIDTScaleShowAnimation>();
 				uiActivator.GetOrAddComponent<UIDTScaleHideAnimation>();
+				EditorUtility.SetDirty(uiActivator.gameObject);
 			});
 			root.Q<Button>("DotweenAddSlideButton")?.RegisterCallback<ClickEvent>(_ =>
 			{
 				UIActivator uiActivator = target as UIActivator;
 				uiActivator.GetOrAddComponent<UIDTSlideShowAnimation>();
 				uiActivator.GetOrAddComponent<UIDTSlideHideAnimation>();
+				EditorUtility.SetDirty(uiActivator.gameObject);
 			});
 #endif
 
@@ -205,18 +206,21 @@ namespace com.mutant.ugui.Editor
 				UIActivator uiActivator = target as UIActivator;
 				uiActivator.GetOrAddComponent<UILMFadeShowAnimation>();
 				uiActivator.GetOrAddComponent<UILMFadeHideAnimation>();
+				EditorUtility.SetDirty(uiActivator.gameObject);
 			});
 			root.Q<Button>("LitMotionAddScaleButton")?.RegisterCallback<ClickEvent>(_ =>
 			{
 				UIActivator uiActivator = target as UIActivator;
 				uiActivator.GetOrAddComponent<UILMScaleShowAnimation>();
 				uiActivator.GetOrAddComponent<UILMScaleHideAnimation>();
+				EditorUtility.SetDirty(uiActivator.gameObject);
 			});
 			root.Q<Button>("LitMotionAddSlideButton")?.RegisterCallback<ClickEvent>(_ =>
 			{
 				UIActivator uiActivator = target as UIActivator;
 				uiActivator.GetOrAddComponent<UILMSlideShowAnimation>();
 				uiActivator.GetOrAddComponent<UILMSlideHideAnimation>();
+				EditorUtility.SetDirty(uiActivator.gameObject);
 			});
 #endif
 		}
@@ -313,7 +317,6 @@ namespace com.mutant.ugui.Editor
 					return;
 
 				uiActivator.EnableActiveStateInHierarchyReactiveProperty = evt.newValue;
-				EditorUtility.SetDirty(uiActivator.gameObject);
 			});
 		}
 		void ImplementEnableActiveCompleteInHierarchyReactivePropertyToggle(VisualElement root) {
@@ -325,7 +328,6 @@ namespace com.mutant.ugui.Editor
 					return;
 
 				uiActivator.EnableActiveCompleteInHierarchyReactiveProperty = evt.newValue;
-				EditorUtility.SetDirty(uiActivator.gameObject);
 			});
 		}
 		void ImplementEnableDeActiveCompleteInHierarchyReactivePropertyToggle(VisualElement root) {
@@ -337,7 +339,6 @@ namespace com.mutant.ugui.Editor
 					return;
 
 				uiActivator.EnableDeActiveCompleteInHierarchyReactiveProperty = evt.newValue;
-				EditorUtility.SetDirty(uiActivator.gameObject);
 			});
 		}
 		void ImplementEnableDisplayStateInHierarchyReactivePropertyToggle(VisualElement root) {
@@ -349,7 +350,7 @@ namespace com.mutant.ugui.Editor
 					return;
 
 				uiActivator.EnableDisplayStateInHierarchyReactiveProperty = evt.newValue;
-				EditorUtility.SetDirty(uiActivator.gameObject);
+				//EditorUtility.SetDirty(uiActivator.gameObject);
 			});
 		}
 
