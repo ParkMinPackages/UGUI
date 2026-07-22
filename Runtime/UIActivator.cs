@@ -70,7 +70,7 @@ namespace com.mutant.ugui
 				ActiveImmediate();
 			}
 		}
-		public async UniTask DeActiveAsync(bool forceExecute = false, CancelBehavior cancelBehaviour = CancelBehavior.RollBack, CancellationToken cancellationToken = default) {
+		public async UniTask DeActiveAsync(bool forceExecute = false, CancelBehavior cancelBehaviour = CancelBehavior.Complete, CancellationToken cancellationToken = default) {
 			if (forceExecute == false && _activeState.CurrentValue == false) {
 				return;
 			}
