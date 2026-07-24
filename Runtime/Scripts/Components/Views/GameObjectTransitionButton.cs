@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace Components.Views
+namespace com.parkminpackages.ugui.Components.Views
 {
 	public class GameObjectTransitionButton : Button
 	{

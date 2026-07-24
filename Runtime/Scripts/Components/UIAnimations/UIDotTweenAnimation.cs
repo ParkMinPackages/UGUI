@@ -3,7 +3,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 
-namespace Components.UIAnimations
+namespace com.parkminpackages.ugui.Components.UIAnimations
 {
 	public abstract class UIDotTweenShowAnimation : ShowAnimation
 	{

@@ -2,7 +2,7 @@
 using LitMotion;
 using UnityEngine;
 
-namespace Components.UIAnimations
+namespace com.parkminpackages.ugui.Components.UIAnimations
 {
 	[DisallowMultipleComponent]
 	public class UILMScaleHideAnimation : UILitMotionHideAnimation

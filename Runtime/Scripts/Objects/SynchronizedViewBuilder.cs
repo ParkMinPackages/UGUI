@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using Interfaces;
+using com.parkminpackages.ugui.Interfaces;
 using ObservableCollections;
 using UnityEngine;
 
-namespace Objects
+namespace com.parkminpackages.ugui.Objects
 {
 	public static class SynchronizedViewBuilder<TData, TView>
 		where TView : MonoBehaviour, ISyncronizedViewItem<TData>

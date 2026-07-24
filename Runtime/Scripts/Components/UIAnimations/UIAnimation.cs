@@ -1,9 +1,9 @@
 ﻿using System.Threading;
-using com.parkminpackages.expansion;
+using com.parkminpackages.expansion.Components;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
-namespace Components.UIAnimations
+namespace com.parkminpackages.ugui.Components.UIAnimations
 {
 	[RequireComponent(typeof(UIActivator))]
 	public abstract class UIAnimation : ExtendedBehaviour

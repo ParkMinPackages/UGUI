@@ -1,10 +1,10 @@
 ﻿#if DOTWEEN && UNITASK_DOTWEEN_SUPPORT
 using System;
+using com.parkminpackages.ugui.Enums;
 using DG.Tweening;
-using Enums;
 using UnityEngine;
 
-namespace Components.UIAnimations
+namespace com.parkminpackages.ugui.Components.UIAnimations
 {
 	[DisallowMultipleComponent]
 	public class UIDTSlideShowAnimation : UIDotTweenShowAnimation

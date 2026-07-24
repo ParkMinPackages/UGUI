@@ -2,7 +2,7 @@
 using DG.Tweening;
 using UnityEngine;
 
-namespace Components.UIAnimations
+namespace com.parkminpackages.ugui.Components.UIAnimations
 {
 	[DisallowMultipleComponent]
 	public class UIDTScaleShowAnimation : UIDotTweenShowAnimation
