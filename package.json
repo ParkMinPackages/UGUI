@@ -10,7 +10,7 @@
   "description": "ParkMinPackages UGUI package.",
   "dependencies": {
     "com.unity.ugui": "2.0.0",
-    "com.parkminpackages.expansion": "3.0.0",
+    "com.parkminpackages.foundation": "3.0.1",
     "com.cysharp.unitask": "2.5.10",
     "com.cysharp.r3": "1.3.0"
   },

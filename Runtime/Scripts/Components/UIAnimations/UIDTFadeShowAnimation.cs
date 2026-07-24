@@ -1,5 +1,5 @@
-﻿#if DOTWEEN && UNITASK_DOTWEEN_SUPPORT
-using com.parkminpackages.expansion.Extensions;
+#if DOTWEEN && UNITASK_DOTWEEN_SUPPORT
+using com.parkminpackages.foundation.Extensions;
 using DG.Tweening;
 using UnityEngine;
 

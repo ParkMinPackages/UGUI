@@ -1,5 +1,5 @@
-﻿#if LITMOTION_SUPPORT
-using com.parkminpackages.expansion.Extensions;
+#if LITMOTION_SUPPORT
+using com.parkminpackages.foundation.Extensions;
 using LitMotion;
 using UnityEngine;
 

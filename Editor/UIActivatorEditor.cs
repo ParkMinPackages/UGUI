@@ -1,5 +1,5 @@
 using System;
-using com.parkminpackages.expansion.Extensions;
+using com.parkminpackages.foundation.Extensions;
 using com.parkminpackages.ugui.Components;
 using com.parkminpackages.ugui.Components.UIAnimations;
 using Cysharp.Threading.Tasks;
