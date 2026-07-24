@@ -1,9 +1,9 @@
 ﻿#if DOTWEEN && UNITASK_DOTWEEN_SUPPORT
-using com.mutant.expansion.Extensions;
+using com.parkminpackages.expansion.Extensions;
 using DG.Tweening;
 using UnityEngine;
 
-namespace com.mutant.ugui.UIAnimations
+namespace com.parkminpackages.ugui.UIAnimations
 {
 	[DisallowMultipleComponent]
 	public class UIDTFadeHideAnimation : UIDotTweenHideAnimation

@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using com.mutant.expansion;
-using com.mutant.ugui.UIAnimations;
+using com.parkminpackages.expansion;
+using com.parkminpackages.ugui.UIAnimations;
 using Cysharp.Threading.Tasks;
 using R3;
 using UnityEngine;
 
-namespace com.mutant.ugui
+namespace com.parkminpackages.ugui
 {
 	[RequireComponent(typeof(Canvas))]
 	[RequireComponent(typeof(CanvasGroup))]

@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace com.mutant.ugui
+namespace com.parkminpackages.ugui
 {
 	public class GameObjectTransitionButton : Button
 	{

@@ -1,9 +1,9 @@
 ﻿using System.Threading;
-using com.mutant.expansion;
+using com.parkminpackages.expansion;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
-namespace com.mutant.ugui.UIAnimations
+namespace com.parkminpackages.ugui.UIAnimations
 {
 	[RequireComponent(typeof(UIActivator))]
 	public abstract class UIAnimation : ExtendedBehaviour

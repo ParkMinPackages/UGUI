@@ -1,0 +1,28 @@
+{
+  "name": "ParkMinPackages.UGUI",
+  "rootNamespace": "",
+  "references": [
+    "GUID:71a72178c26810b4fb6e1516407e5558",
+    "GUID:77221876cc6b8244180b96e320b1bcd4",
+    "GUID:3b570a5146f9d4f0fa107ed4559471a3",
+    "GUID:3aa1866a824b5472da50fe142777d95f",
+    "GUID:f51ebe6a0ceec4240a699833d6309b23",
+    "GUID:029c1c1b674aaae47a6841a0b89ad80e",
+    "GUID:65081b640df1ff54ba0a5e5767fc1e01"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [
+    {
+      "name": "com.annulusgames.lit-motion",
+      "expression": "",
+      "define": "LITMOTION_SUPPORT"
+    }
+  ],
+  "noEngineReferences": false
+}

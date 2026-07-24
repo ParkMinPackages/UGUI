@@ -3,7 +3,7 @@ using System;
 using DG.Tweening;
 using UnityEngine;
 
-namespace com.mutant.ugui.UIAnimations
+namespace com.parkminpackages.ugui.UIAnimations
 {
 	[DisallowMultipleComponent]
 	public class UIDTSlideHideAnimation : UIDotTweenHideAnimation

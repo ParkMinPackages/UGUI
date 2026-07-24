@@ -1,4 +1,4 @@
-﻿namespace com.mutant.ugui
+﻿namespace com.parkminpackages.ugui
 {
 	public interface ISyncronizedViewItem<TData>
 	{

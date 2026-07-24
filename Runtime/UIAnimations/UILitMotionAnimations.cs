@@ -3,7 +3,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using LitMotion;
 
-namespace com.mutant.ugui.UIAnimations
+namespace com.parkminpackages.ugui.UIAnimations
 {
 	public abstract class UILitMotionShowAnimation : ShowAnimation
 	{

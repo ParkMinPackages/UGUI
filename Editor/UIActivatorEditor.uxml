@@ -1,11 +1,14 @@
-<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+<ui:UXML xmlns:ui="UnityEngine.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd"
+         editor-extension-mode="False">
     <ui:Toggle label="Start Active State" name="StartActiveStateToggle"/>
     <ui:Toggle label="Visible" name="VisibleToggle"/>
     <ui:Toggle label="Raycastable" name="RaycastableToggle"/>
     <ui:Toggle label="Interactable" name="InteractableToggle"/>
     <ui:VisualElement style="flex-grow: 0; flex-direction: row; flex-shrink: 1;">
-        <ui:Slider label="Fade" value="1.38" high-value="1" name="FadeSlider" style="flex-grow: 1; justify-content: space-between;"/>
-        <ui:FloatField label="" value="1" name="FadeFloatField" style="align-items: center; justify-content: space-between; width: 100px; min-width: 40px; max-width: 40px;"/>
+        <ui:Slider label="Fade" value="1.38" high-value="1" name="FadeSlider"
+                   style="flex-grow: 1; justify-content: space-between;"/>
+        <ui:FloatField label="" value="1" name="FadeFloatField"
+                       style="align-items: center; justify-content: space-between; width: 100px; min-width: 40px; max-width: 40px;"/>
     </ui:VisualElement>
     <ui:Toggle label="DisableRaycastWhileAnimation" name="DisableRaycastWhileAnimationToggle"/>
     <ui:VisualElement style="flex-grow: 0; flex-direction: row;">
@@ -14,7 +17,9 @@
     </ui:VisualElement>
     <ui:Foldout text="ReactiveProperty" name="ReactivePropertyFoldout" value="true">
         <ui:Toggle label="ActiveState" name="ActiveStateToggle" enabled="false"/>
-        <ui:EnumField label="AnimationState" value="ActiveComplete" type="com.mutant.ugui.UIActivator+AnimationState, Mutant.UGUI" enabled="false" name="AnimationStateEnumField"/>
+        <ui:EnumField label="AnimationState" value="ActiveComplete"
+                      type="com.parkminpackages.ugui.UIActivator+AnimationState, ParkMinPackages.UGUI" enabled="false"
+                      name="AnimationStateEnumField"/>
         <ui:Toggle label="ActiveComplete" name="ActiveCompleteToggle" enabled="false"/>
         <ui:Toggle label="DeActiveComplete" name="DeActiveCompleteToggle" enabled="false"/>
         <ui:Toggle label="DisplayState" name="DisplayStateToggle" enabled="false"/>

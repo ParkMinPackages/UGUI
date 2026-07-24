@@ -1,4 +1,4 @@
-﻿namespace com.mutant.ugui.UIAnimations
+﻿namespace com.parkminpackages.ugui.UIAnimations
 {
 	public enum Direction
 	{

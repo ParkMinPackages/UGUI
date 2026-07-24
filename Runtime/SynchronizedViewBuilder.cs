@@ -4,7 +4,7 @@ using System.Collections.Specialized;
 using ObservableCollections;
 using UnityEngine;
 
-namespace com.mutant.ugui
+namespace com.parkminpackages.ugui
 {
 	public static class SynchronizedViewBuilder<TData, TView>
 		where TView : MonoBehaviour, ISyncronizedViewItem<TData>

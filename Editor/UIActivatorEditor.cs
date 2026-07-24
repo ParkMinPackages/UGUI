@@ -1,6 +1,6 @@
 using System;
-using com.mutant.expansion.Extensions;
-using com.mutant.ugui.UIAnimations;
+using com.parkminpackages.expansion.Extensions;
+using com.parkminpackages.ugui.UIAnimations;
 using Cysharp.Threading.Tasks;
 using R3;
 using UnityEditor;
@@ -8,7 +8,7 @@ using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace com.mutant.ugui.Editor
+namespace com.parkminpackages.ugui.Editor
 {
 	[CustomEditor(typeof(UIActivator))]
 	public class UIActivatorEditor : UnityEditor.Editor

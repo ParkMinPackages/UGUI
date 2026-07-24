@@ -1,9 +1,9 @@
 ﻿#if LITMOTION_SUPPORT
-using com.mutant.expansion.Extensions;
+using com.parkminpackages.expansion.Extensions;
 using LitMotion;
 using UnityEngine;
 
-namespace com.mutant.ugui.UIAnimations
+namespace com.parkminpackages.ugui.UIAnimations
 {
 	[DisallowMultipleComponent]
 	public class UILMFadeShowAnimation : UILitMotionShowAnimation
