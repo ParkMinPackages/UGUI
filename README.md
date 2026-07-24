@@ -1,7 +1,7 @@
 ## 의존 패키지
 
 #본 패키지는 다음의 필수 외부 의존성이 있습니다.
-1.com.mutant.expansion
+1. com.parkminpackages.expansion
 2.com.cysharp.unitask
 
 #본 패키지는 DOTween용 UIAnimation을 활성화 할 수 있습니다.

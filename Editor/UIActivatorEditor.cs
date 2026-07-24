@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using com.mutant.expansion.Extensions;
 using com.mutant.ugui.UIAnimations;
 using Cysharp.Threading.Tasks;
@@ -13,7 +13,7 @@ namespace com.mutant.ugui.Editor
 	[CustomEditor(typeof(UIActivator))]
 	public class UIActivatorEditor : UnityEditor.Editor
 	{
-		const string UxmlPath = "Packages/com.mutant.ugui/Editor/UIActivatorEditor.uxml";
+		const string UxmlPath = "Packages/com.parkminpackages.ugui/Editor/UIActivatorEditor.uxml";
 
 		public override VisualElement CreateInspectorGUI() {
 			VisualElement root = new VisualElement();
