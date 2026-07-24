@@ -2,17 +2,16 @@
 using DG.Tweening;
 using UnityEngine;
 
-namespace com.parkminpackages.ugui.UIAnimations
+namespace Components.UIAnimations
 {
 	[DisallowMultipleComponent]
-	public class UIDTScaleShowAnimation : UIDotTweenShowAnimation
+	public class UIDTScaleHideAnimation : UIDotTweenHideAnimation
 	{
 		public override Tween CreateTween() {
-			return Target.DOScale(_defaultLocalScale, Duration).SetEase(Ease);
+			return Target.DOScale(Vector3.zero, Duration).SetEase(Ease);
 		}
 		public override void CaptureCurrent() {
 			_defaultLocalScale = Target.localScale;
-			Target.localScale = Vector3.zero;
 		}
 		public override void ApplyCaptured() {
 			Target.localScale = _defaultLocalScale;

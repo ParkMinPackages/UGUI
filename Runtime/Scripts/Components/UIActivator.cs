@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using com.parkminpackages.expansion;
-using com.parkminpackages.ugui.UIAnimations;
+using Components.UIAnimations;
 using Cysharp.Threading.Tasks;
+using Enums;
 using R3;
 using UnityEngine;
 
-namespace com.parkminpackages.ugui
+namespace Components
 {
 	[RequireComponent(typeof(Canvas))]
 	[RequireComponent(typeof(CanvasGroup))]

@@ -1,7 +1,7 @@
 ﻿using com.parkminpackages.expansion;
 using UnityEngine;
 
-namespace com.parkminpackages.ugui
+namespace Components.UI
 {
 	[RequireComponent(typeof(UIActivator))]
 	public class BasicUI : Actor

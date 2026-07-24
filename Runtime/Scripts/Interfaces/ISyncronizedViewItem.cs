@@ -1,4 +1,4 @@
-﻿namespace com.parkminpackages.ugui
+﻿namespace Interfaces
 {
 	public interface ISyncronizedViewItem<TData>
 	{

@@ -1,4 +1,4 @@
-﻿namespace com.parkminpackages.ugui
+﻿namespace Enums
 {
 	public enum CancelBehavior : byte
 	{

@@ -1,33 +1,34 @@
 ﻿#if DOTWEEN && UNITASK_DOTWEEN_SUPPORT
 using System;
 using DG.Tweening;
+using Enums;
 using UnityEngine;
 
-namespace com.parkminpackages.ugui.UIAnimations
+namespace Components.UIAnimations
 {
 	[DisallowMultipleComponent]
-	public class UIDTSlideHideAnimation : UIDotTweenHideAnimation
+	public class UIDTSlideShowAnimation : UIDotTweenShowAnimation
 	{
 		public override Tween CreateTween() {
-			Tween tween = null;
 			Vector3 canvasSize = _rootCanvasRectTransform.rect.size;
-			switch (DisappearingDirection) {
+			switch (AppearingDirection) {
 				case Direction.Left:
-					tween = Target.DOLocalMove(Target.localPosition + new Vector3(-canvasSize.x, 0, 0), Duration).SetEase(Ease).SetAutoKill(true);
+					Target.localPosition += new Vector3(-canvasSize.x, 0, 0);
 					break;
 				case Direction.Right:
-					tween = Target.DOLocalMove(Target.localPosition + new Vector3(canvasSize.x, 0, 0), Duration).SetEase(Ease).SetAutoKill(true);
+					Target.localPosition += new Vector3(canvasSize.x, 0, 0);
 					break;
 				case Direction.Top:
-					tween = Target.DOLocalMove(Target.localPosition + new Vector3(0, canvasSize.y, 0), Duration).SetEase(Ease).SetAutoKill(true);
+					Target.localPosition += new Vector3(0, canvasSize.y, 0);
 					break;
 				case Direction.Bottom:
-					tween = Target.DOLocalMove(Target.localPosition + new Vector3(0, -canvasSize.y, 0), Duration).SetEase(Ease).SetAutoKill(true);
+					Target.localPosition += new Vector3(0, -canvasSize.y, 0);
 					break;
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
-			return tween;
+
+			return Target.DOLocalMove(_defaultLocalPos, Duration).SetEase(Ease).SetAutoKill(true);
 		}
 		public override void CaptureCurrent() {
 			_defaultLocalPos = Target.localPosition;
@@ -38,7 +39,7 @@ namespace com.parkminpackages.ugui.UIAnimations
 
 		public float Duration = 0.2f;
 		public Ease Ease = Ease.Unset;
-		public Direction DisappearingDirection;
+		public Direction AppearingDirection;
 
 		protected override void Awake() {
 			base.Awake();

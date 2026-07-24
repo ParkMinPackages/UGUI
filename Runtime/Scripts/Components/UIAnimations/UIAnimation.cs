@@ -3,7 +3,7 @@ using com.parkminpackages.expansion;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
-namespace com.parkminpackages.ugui.UIAnimations
+namespace Components.UIAnimations
 {
 	[RequireComponent(typeof(UIActivator))]
 	public abstract class UIAnimation : ExtendedBehaviour

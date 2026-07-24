@@ -1,18 +1,15 @@
-﻿#if LITMOTION_SUPPORT
+﻿#if DOTWEEN && UNITASK_DOTWEEN_SUPPORT
 using com.parkminpackages.expansion.Extensions;
-using LitMotion;
+using DG.Tweening;
 using UnityEngine;
 
-namespace com.parkminpackages.ugui.UIAnimations
+namespace Components.UIAnimations
 {
 	[DisallowMultipleComponent]
-	public class UILMFadeHideAnimation : UILitMotionHideAnimation
+	public class UIDTFadeHideAnimation : UIDotTweenHideAnimation
 	{
-		public override MotionHandle CreateMotion() {
-			return LMotion.Create(CanvasGroup.alpha, 0f, Duration)
-			              .WithEase(Ease)
-			              .Bind(x => CanvasGroup.alpha = x)
-			              .AddTo(CanvasGroup.gameObject);
+		public override Tween CreateTween() {
+			return CanvasGroup.DOFade(0, Duration).SetEase(Ease);
 		}
 		public override void CaptureCurrent() {
 			_defaultCanvasAlpha = CanvasGroup.alpha;
@@ -22,7 +19,8 @@ namespace com.parkminpackages.ugui.UIAnimations
 		}
 
 		public float Duration = 0.3f;
-		public Ease Ease = Ease.Linear;
+		public Ease Ease = Ease.Unset;
+
 
 		CanvasGroup _canvasGroup;
 		float _defaultCanvasAlpha;

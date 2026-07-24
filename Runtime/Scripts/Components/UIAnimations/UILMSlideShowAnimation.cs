@@ -1,9 +1,10 @@
 ﻿#if LITMOTION_SUPPORT
 using System;
+using Enums;
 using LitMotion;
 using UnityEngine;
 
-namespace com.parkminpackages.ugui.UIAnimations
+namespace Components.UIAnimations
 {
 	[DisallowMultipleComponent]
 	public class UILMSlideShowAnimation : UILitMotionShowAnimation

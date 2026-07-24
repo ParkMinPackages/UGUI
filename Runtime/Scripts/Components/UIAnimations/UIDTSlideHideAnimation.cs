@@ -1,43 +1,34 @@
-﻿#if LITMOTION_SUPPORT
+﻿#if DOTWEEN && UNITASK_DOTWEEN_SUPPORT
 using System;
-using LitMotion;
+using DG.Tweening;
+using Enums;
 using UnityEngine;
 
-namespace com.parkminpackages.ugui.UIAnimations
+namespace Components.UIAnimations
 {
 	[DisallowMultipleComponent]
-	public class UILMSlideHideAnimation : UILitMotionHideAnimation
+	public class UIDTSlideHideAnimation : UIDotTweenHideAnimation
 	{
-		public override MotionHandle CreateMotion() {
+		public override Tween CreateTween() {
+			Tween tween = null;
 			Vector3 canvasSize = _rootCanvasRectTransform.rect.size;
-
-			Vector3 targetPos = Target.localPosition;
-
 			switch (DisappearingDirection) {
 				case Direction.Left:
-					targetPos += new Vector3(-canvasSize.x, 0, 0);
+					tween = Target.DOLocalMove(Target.localPosition + new Vector3(-canvasSize.x, 0, 0), Duration).SetEase(Ease).SetAutoKill(true);
 					break;
-
 				case Direction.Right:
-					targetPos += new Vector3(canvasSize.x, 0, 0);
+					tween = Target.DOLocalMove(Target.localPosition + new Vector3(canvasSize.x, 0, 0), Duration).SetEase(Ease).SetAutoKill(true);
 					break;
-
 				case Direction.Top:
-					targetPos += new Vector3(0, canvasSize.y, 0);
+					tween = Target.DOLocalMove(Target.localPosition + new Vector3(0, canvasSize.y, 0), Duration).SetEase(Ease).SetAutoKill(true);
 					break;
-
 				case Direction.Bottom:
-					targetPos += new Vector3(0, -canvasSize.y, 0);
+					tween = Target.DOLocalMove(Target.localPosition + new Vector3(0, -canvasSize.y, 0), Duration).SetEase(Ease).SetAutoKill(true);
 					break;
-
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
-
-			return LMotion.Create(Target.localPosition, targetPos, Duration)
-			              .WithEase(Ease)
-			              .Bind(x => Target.localPosition = x)
-			              .AddTo(Target.gameObject);
+			return tween;
 		}
 		public override void CaptureCurrent() {
 			_defaultLocalPos = Target.localPosition;
@@ -47,7 +38,7 @@ namespace com.parkminpackages.ugui.UIAnimations
 		}
 
 		public float Duration = 0.2f;
-		public Ease Ease = Ease.Linear;
+		public Ease Ease = Ease.Unset;
 		public Direction DisappearingDirection;
 
 		protected override void Awake() {

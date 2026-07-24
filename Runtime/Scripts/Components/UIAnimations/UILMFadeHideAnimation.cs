@@ -3,14 +3,13 @@ using com.parkminpackages.expansion.Extensions;
 using LitMotion;
 using UnityEngine;
 
-namespace com.parkminpackages.ugui.UIAnimations
+namespace Components.UIAnimations
 {
 	[DisallowMultipleComponent]
-	public class UILMFadeShowAnimation : UILitMotionShowAnimation
+	public class UILMFadeHideAnimation : UILitMotionHideAnimation
 	{
 		public override MotionHandle CreateMotion() {
-			CanvasGroup.alpha = 0;
-			return LMotion.Create(CanvasGroup.alpha, _defaultCanvasAlpha, Duration)
+			return LMotion.Create(CanvasGroup.alpha, 0f, Duration)
 			              .WithEase(Ease)
 			              .Bind(x => CanvasGroup.alpha = x)
 			              .AddTo(CanvasGroup.gameObject);

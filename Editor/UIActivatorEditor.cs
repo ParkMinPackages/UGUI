@@ -1,6 +1,7 @@
 using System;
 using com.parkminpackages.expansion.Extensions;
-using com.parkminpackages.ugui.UIAnimations;
+using Components;
+using Components.UIAnimations;
 using Cysharp.Threading.Tasks;
 using R3;
 using UnityEditor;
@@ -8,7 +9,7 @@ using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace com.parkminpackages.ugui.Editor
+namespace Editor
 {
 	[CustomEditor(typeof(UIActivator))]
 	public class UIActivatorEditor : UnityEditor.Editor

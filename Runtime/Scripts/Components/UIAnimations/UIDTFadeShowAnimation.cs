@@ -3,13 +3,14 @@ using com.parkminpackages.expansion.Extensions;
 using DG.Tweening;
 using UnityEngine;
 
-namespace com.parkminpackages.ugui.UIAnimations
+namespace Components.UIAnimations
 {
 	[DisallowMultipleComponent]
-	public class UIDTFadeHideAnimation : UIDotTweenHideAnimation
+	public class UIDTFadeShowAnimation : UIDotTweenShowAnimation
 	{
 		public override Tween CreateTween() {
-			return CanvasGroup.DOFade(0, Duration).SetEase(Ease);
+			CanvasGroup.alpha = 0;
+			return CanvasGroup.DOFade(_defaultCanvasAlpha, Duration).SetEase(Ease);
 		}
 		public override void CaptureCurrent() {
 			_defaultCanvasAlpha = CanvasGroup.alpha;
@@ -20,7 +21,6 @@ namespace com.parkminpackages.ugui.UIAnimations
 
 		public float Duration = 0.3f;
 		public Ease Ease = Ease.Unset;
-
 
 		CanvasGroup _canvasGroup;
 		float _defaultCanvasAlpha;
