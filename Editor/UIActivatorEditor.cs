@@ -20,7 +20,11 @@ namespace ParkMinPackages.UGUI.Editor
 			VisualElement root = new VisualElement();
 
 			VisualTreeAsset visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(UxmlPath);
-			root.Add(visualTree.CloneTree());
+			if (visualTree == null) {
+                root.Add(new HelpBox($"Could not load the UIActivator inspector layout at '{UxmlPath}'.", HelpBoxMessageType.Error));
+                return root;
+            }
+            root.Add(visualTree.CloneTree());
 
 			serializedObject.Update();
 
@@ -71,6 +75,7 @@ namespace ParkMinPackages.UGUI.Editor
 		}
 		void ExpandAdditionalReactivePropertyFoldout(VisualElement root) {
 			Foldout additionalReactivePropertyFoldout = root.Q<Foldout>("AdditionalReactivePropertyFoldout");
+            if (additionalReactivePropertyFoldout == null) return;
 			foreach (Foldout foldout in additionalReactivePropertyFoldout.Query<Foldout>().ToList()) {
 				foldout.value = true;
 			}

@@ -4,6 +4,11 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [5.0.1] - 2026-07-25
+
+### Fixed
+- Restored the UIActivator Inspector UXML layout from the ParkMinPackages namespace-migration version.
+- Added null-safe handling when the UIActivator Inspector layout or its additional reactive-property foldout cannot be found.
 ## [5.0.0] - 2026-07-25
 
 ### Breaking Changes
