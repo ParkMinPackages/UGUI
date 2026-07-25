@@ -1,4 +1,4 @@
-﻿namespace com.parkminpackages.ugui.Enums
+﻿namespace ParkMinPackages.UGUI.Enums
 {
 	public enum Direction
 	{

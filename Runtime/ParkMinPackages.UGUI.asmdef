@@ -1,6 +1,6 @@
 {
   "name": "ParkMinPackages.UGUI",
-  "rootNamespace": "",
+  "rootNamespace": "ParkMinPackages.UGUI",
   "references": [
     "GUID:71a72178c26810b4fb6e1516407e5558",
     "GUID:77221876cc6b8244180b96e320b1bcd4",

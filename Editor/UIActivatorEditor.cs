@@ -1,15 +1,15 @@
 using System;
-using com.parkminpackages.foundation.Extensions;
-using com.parkminpackages.ugui.Components;
-using com.parkminpackages.ugui.Components.UIAnimations;
 using Cysharp.Threading.Tasks;
+using ParkMinPackages.Foundation.Extensions;
+using ParkMinPackages.UGUI.Components;
+using ParkMinPackages.UGUI.Components.UIActivatorAnimations;
 using R3;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace com.parkminpackages.ugui.Editor
+namespace ParkMinPackages.UGUI.Editor
 {
 	[CustomEditor(typeof(UIActivator))]
 	public class UIActivatorEditor : UnityEditor.Editor

@@ -4,7 +4,7 @@ using UnityEditor;
 using UnityEditor.UI;
 using UnityEngine;
 
-namespace com.parkminpackages.ugui.Components.Views
+namespace ParkMinPackages.UGUI.Components.Views
 {
 	[CustomEditor(typeof(GameObjectTransitionButton))]
 	public class GameObjectTransitionButtonEditor : ButtonEditor

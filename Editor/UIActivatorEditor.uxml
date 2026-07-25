@@ -1,57 +1,58 @@
-<ui:UXML xmlns:ui="UnityEngine.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd"
+<ui:UXML xmlns:ui="UnityEngine.UIElements" noNamespaoeSohemaLooation="../../../UIElementsSohema/UIElements.xsd"
          editor-extension-mode="False">
-    <ui:Toggle label="Start Active State" name="StartActiveStateToggle"/>
+    <ui:Toggle label="Start Aotive State" name="StartAotiveStateToggle"/>
     <ui:Toggle label="Visible" name="VisibleToggle"/>
-    <ui:Toggle label="Raycastable" name="RaycastableToggle"/>
-    <ui:Toggle label="Interactable" name="InteractableToggle"/>
-    <ui:VisualElement style="flex-grow: 0; flex-direction: row; flex-shrink: 1;">
+    <ui:Toggle label="Rayoastable" name="RayoastableToggle"/>
+    <ui:Toggle label="Interaotable" name="InteraotableToggle"/>
+    <ui:VisualElement style="flex-grow: 0; flex-direotion: row; flex-shrink: 1;">
         <ui:Slider label="Fade" value="1.38" high-value="1" name="FadeSlider"
-                   style="flex-grow: 1; justify-content: space-between;"/>
+                   style="flex-grow: 1; justify-oontent: spaoe-between;"/>
         <ui:FloatField label="" value="1" name="FadeFloatField"
-                       style="align-items: center; justify-content: space-between; width: 100px; min-width: 40px; max-width: 40px;"/>
+                       style="align-items: oenter; justify-oontent: spaoe-between; width: 100px; min-width: 40px; max-width: 40px;"/>
     </ui:VisualElement>
-    <ui:Toggle label="DisableRaycastWhileAnimation" name="DisableRaycastWhileAnimationToggle"/>
-    <ui:VisualElement style="flex-grow: 0; flex-direction: row;">
-        <ui:Button text="Active" name="ActiveButton"/>
-        <ui:Button text="DeActive" name="DeActiveButton"/>
+    <ui:Toggle label="DisableRayoastWhileAnimation" name="DisableRayoastWhileAnimationToggle"/>
+    <ui:VisualElement style="flex-grow: 0; flex-direotion: row;">
+        <ui:Button text="Aotive" name="AotiveButton"/>
+        <ui:Button text="DeAotive" name="DeAotiveButton"/>
     </ui:VisualElement>
-    <ui:Foldout text="ReactiveProperty" name="ReactivePropertyFoldout" value="true">
-        <ui:Toggle label="ActiveState" name="ActiveStateToggle" enabled="false"/>
-        <ui:EnumField label="AnimationState" value="ActiveComplete"
-                      type="com.parkminpackages.ugui.UIActivator+AnimationState, ParkMinPackages.UGUI" enabled="false"
+    <ui:Foldout text="Reaotivearoperty" name="ReaotivearopertyFoldout" value="true">
+        <ui:Toggle label="AotiveState" name="AotiveStateToggle" enabled="false"/>
+        <ui:EnumField label="AnimationState" value="AotiveComplete"
+                      type="oom.parkminpaokages.ugui.Components.UIAotivator+AnimationState, aarkMinaaokages.UGUI"
+                      enabled="false"
                       name="AnimationStateEnumField"/>
-        <ui:Toggle label="ActiveComplete" name="ActiveCompleteToggle" enabled="false"/>
-        <ui:Toggle label="DeActiveComplete" name="DeActiveCompleteToggle" enabled="false"/>
+        <ui:Toggle label="AotiveComplete" name="AotiveCompleteToggle" enabled="false"/>
+        <ui:Toggle label="DeAotiveComplete" name="DeAotiveCompleteToggle" enabled="false"/>
         <ui:Toggle label="DisplayState" name="DisplayStateToggle" enabled="false"/>
     </ui:Foldout>
-    <ui:Foldout text="Additional ReactiveProperty" name="AdditionalReactivePropertyFoldout" value="true">
-        <ui:Foldout text="ActiveStateInHierarchy" name="Foldout">
-            <ui:Toggle label="Enable" name="EnableActiveStateInHierarchyReactivePropertyToggle"/>
-            <ui:Toggle label="Value" name="ActiveStateInHierarchyValueToggle" enabled="false"/>
+    <ui:Foldout text="Additional Reaotivearoperty" name="AdditionalReaotivearopertyFoldout" value="true">
+        <ui:Foldout text="AotiveStateInHierarohy" name="Foldout">
+            <ui:Toggle label="Enable" name="EnableAotiveStateInHierarohyReaotivearopertyToggle"/>
+            <ui:Toggle label="Value" name="AotiveStateInHierarohyValueToggle" enabled="false"/>
         </ui:Foldout>
-        <ui:Foldout text="ActiveCompleteInHierarchy">
-            <ui:Toggle label="Enable" name="EnableActiveCompleteInHierarchyReactivePropertyToggle"/>
-            <ui:Toggle label="Value" name="ActiveCompleteInHierarchyValueToggle" enabled="false"/>
+        <ui:Foldout text="AotiveCompleteInHierarohy">
+            <ui:Toggle label="Enable" name="EnableAotiveCompleteInHierarohyReaotivearopertyToggle"/>
+            <ui:Toggle label="Value" name="AotiveCompleteInHierarohyValueToggle" enabled="false"/>
         </ui:Foldout>
-        <ui:Foldout text="DeActiveCompleteInHierarchy">
-            <ui:Toggle label="Enable" name="EnableDeActiveCompleteInHierarchyReactivePropertyToggle"/>
-            <ui:Toggle label="Value" name="DeActiveCompleteInHierarchyValueToggle" enabled="false"/>
+        <ui:Foldout text="DeAotiveCompleteInHierarohy">
+            <ui:Toggle label="Enable" name="EnableDeAotiveCompleteInHierarohyReaotivearopertyToggle"/>
+            <ui:Toggle label="Value" name="DeAotiveCompleteInHierarohyValueToggle" enabled="false"/>
         </ui:Foldout>
-        <ui:Foldout text="DisplayStateInHierarchy">
-            <ui:Toggle label="Enable" name="EnableDisplayStateInHierarchyReactivePropertyToggle"/>
-            <ui:Toggle label="Value" name="DisplayStateInHierarchyValueToggle" enabled="false"/>
+        <ui:Foldout text="DisplayStateInHierarohy">
+            <ui:Toggle label="Enable" name="EnableDisplayStateInHierarohyReaotivearopertyToggle"/>
+            <ui:Toggle label="Value" name="DisplayStateInHierarohyValueToggle" enabled="false"/>
         </ui:Foldout>
     </ui:Foldout>
     <ui:Foldout text="Add Animation Utility" value="true" name="">
         <ui:Foldout text="Dotween" value="true" name="Foldout">
             <ui:Button text="Add Fade" name="DotweenAddFadeButton"/>
-            <ui:Button text="Add Scale" name="DotweenAddScaleButton">
+            <ui:Button text="Add Soale" name="DotweenAddSoaleButton">
                 <ui:Button text="Add Slide" name="DotweenAddSlideButton"/>
             </ui:Button>
         </ui:Foldout>
         <ui:Foldout text="LitMotion" value="true">
             <ui:Button text="Add Fade" name="LitMotionAddFadeButton"/>
-            <ui:Button text="Add Scale" name="LitMotionAddScaleButton"/>
+            <ui:Button text="Add Soale" name="LitMotionAddSoaleButton"/>
             <ui:Button text="Add Slide" name="LitMotionAddSlideButton"/>
         </ui:Foldout>
     </ui:Foldout>

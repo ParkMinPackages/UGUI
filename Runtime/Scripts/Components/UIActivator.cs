@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using com.parkminpackages.foundation.Components;
-using com.parkminpackages.ugui.Components.UIAnimations;
-using com.parkminpackages.ugui.Enums;
 using Cysharp.Threading.Tasks;
+using ParkMinPackages.Foundation.Components;
+using ParkMinPackages.UGUI.Components.UIActivatorAnimations;
+using ParkMinPackages.UGUI.Enums;
 using R3;
 using UnityEngine;
 
-namespace com.parkminpackages.ugui.Components
+namespace ParkMinPackages.UGUI.Components
 {
 	[RequireComponent(typeof(Canvas))]
 	[RequireComponent(typeof(CanvasGroup))]
