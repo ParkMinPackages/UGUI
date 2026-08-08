@@ -28,108 +28,120 @@ namespace ParkMinPackages.UGUI.Components
 		// ===================== Public API =====================
 
 		public async UniTask ActiveAsync(bool forceExecute = false, CancelBehavior cancelBehaviour = CancelBehavior.RollBack, CancellationToken cancellationToken = default) {
-			if (forceExecute == false && _activeState.CurrentValue) {
-				return;
-			}
-
-			ShowAnimation[] showAnimations = _showAnimations.ToArray(); // 원본 변경을 방지하기 위해 복사본
-			if (showAnimations.Any()) {
-				TryCancelAndDisposeAnimation();
-				AllocateToRecentShowHideCTS(cancellationToken);
-				try {
-					_activeState.Value = true;
-					_animationState.Value = AnimationState.Activating;
-
-					Canvas.enabled = true;
-					UpdateRaycastable();
-
-					UniTask[] showAnimationTasks = new UniTask[showAnimations.Length];
-					for (int i = 0; i < showAnimations.Length; i++) {
-						int j = i;
-						showAnimations[j].CaptureCurrent(); // 정상 상태 캡처
-						showAnimationTasks[j] = showAnimations[j].ExecuteAsync(_recentShowHideCTS.Token);
-					}
-					await UniTask.WhenAll(showAnimationTasks);
-
-					_animationState.Value = AnimationState.ActiveComplete;
+			try {
+				if (forceExecute == false && _activeState.CurrentValue) {
+					return;
 				}
-				catch (OperationCanceledException e) {
-					if (cancelBehaviour == CancelBehavior.RollBack) {
-						DeActiveImmediate();
+
+				ShowAnimation[] showAnimations = _showAnimations.ToArray(); // 원본 변경을 방지하기 위해 복사본
+				if (showAnimations.Any()) {
+					TryCancelAndDisposeAnimation();
+					AllocateToRecentShowHideCTS(cancellationToken);
+					try {
+						_activeState.Value = true;
+						_animationState.Value = AnimationState.Activating;
+
+						Canvas.enabled = true;
+						UpdateRaycastable();
+
+						UniTask[] showAnimationTasks = new UniTask[showAnimations.Length];
+						for (int i = 0; i < showAnimations.Length; i++) {
+							int j = i;
+							showAnimations[j].CaptureCurrent(); // 정상 상태 캡처
+							showAnimationTasks[j] = showAnimations[j].ExecuteAsync(_recentShowHideCTS.Token);
+						}
+						await UniTask.WhenAll(showAnimationTasks);
+
+						_animationState.Value = AnimationState.ActiveComplete;
 					}
-					else if (cancelBehaviour == CancelBehavior.Complete) {
-						ActiveImmediate();
+					catch (OperationCanceledException e) {
+						if (cancelBehaviour == CancelBehavior.RollBack) {
+							DeActiveImmediate();
+						}
+						else if (cancelBehaviour == CancelBehavior.Complete) {
+							ActiveImmediate();
+						}
+						throw e;
 					}
-					throw e;
+					finally {
+						for (int i = 0; i < showAnimations.Length; i++) showAnimations[i].ApplyCaptured();
+						UpdateRaycastable();
+					}
 				}
-				finally {
-					for (int i = 0; i < showAnimations.Length; i++) showAnimations[i].ApplyCaptured();
-					UpdateRaycastable();
+				else {
+					ActiveImmediate();
 				}
 			}
-			else {
-				ActiveImmediate();
-			}
+			catch (MissingReferenceException) when (this == null) { }
 		}
 		public async UniTask DeActiveAsync(bool forceExecute = false, CancelBehavior cancelBehaviour = CancelBehavior.Complete, CancellationToken cancellationToken = default) {
-			if (forceExecute == false && _activeState.CurrentValue == false) {
-				return;
-			}
-
-			HideAnimation[] hideAnimations = _hideAnimations.ToArray(); // 원본 변경을 방지하기 위해 복사본
-
-			if (hideAnimations.Any()) {
-				TryCancelAndDisposeAnimation();
-				AllocateToRecentShowHideCTS(cancellationToken);
-				try {
-					_activeState.Value = false;
-					_animationState.Value = AnimationState.Deactivating;
-
-					Canvas.enabled = true;
-					UpdateRaycastable();
-
-					UniTask[] hideAnimationTasks = new UniTask[hideAnimations.Length];
-					for (int i = 0; i < hideAnimations.Length; i++) {
-						int j = i;
-						hideAnimations[j].CaptureCurrent(); // 정상 상태 캡처
-						hideAnimationTasks[j] = hideAnimations[j].ExecuteAsync(_recentShowHideCTS.Token);
-					}
-
-					await UniTask.WhenAll(hideAnimationTasks);
-
-					Canvas.enabled = false;
-
-					_animationState.Value = AnimationState.DeactiveComplete;
+			try {
+				if (forceExecute == false && _activeState.CurrentValue == false) {
+					return;
 				}
-				catch (OperationCanceledException e) {
-					if (cancelBehaviour == CancelBehavior.RollBack) {
-						ActiveImmediate();
+
+				HideAnimation[] hideAnimations = _hideAnimations.ToArray(); // 원본 변경을 방지하기 위해 복사본
+
+				if (hideAnimations.Any()) {
+					TryCancelAndDisposeAnimation();
+					AllocateToRecentShowHideCTS(cancellationToken);
+					try {
+						_activeState.Value = false;
+						_animationState.Value = AnimationState.Deactivating;
+
+						Canvas.enabled = true;
+						UpdateRaycastable();
+
+						UniTask[] hideAnimationTasks = new UniTask[hideAnimations.Length];
+						for (int i = 0; i < hideAnimations.Length; i++) {
+							int j = i;
+							hideAnimations[j].CaptureCurrent(); // 정상 상태 캡처
+							hideAnimationTasks[j] = hideAnimations[j].ExecuteAsync(_recentShowHideCTS.Token);
+						}
+
+						await UniTask.WhenAll(hideAnimationTasks);
+
+						Canvas.enabled = false;
+
+						_animationState.Value = AnimationState.DeactiveComplete;
 					}
-					else if (cancelBehaviour == CancelBehavior.Complete) {
-						DeActiveImmediate();
+					catch (OperationCanceledException e) {
+						if (cancelBehaviour == CancelBehavior.RollBack) {
+							ActiveImmediate();
+						}
+						else if (cancelBehaviour == CancelBehavior.Complete) {
+							DeActiveImmediate();
+						}
+						throw e;
 					}
-					throw e;
+					finally {
+						for (int i = 0; i < hideAnimations.Length; i++) hideAnimations[i].ApplyCaptured();
+						UpdateRaycastable();
+					}
 				}
-				finally {
-					for (int i = 0; i < hideAnimations.Length; i++) hideAnimations[i].ApplyCaptured();
-					UpdateRaycastable();
+				else {
+					DeActiveImmediate();
 				}
 			}
-			else {
-				DeActiveImmediate();
-			}
+			catch (MissingReferenceException) when (this == null) { }
 		}
 		public void ActiveImmediate() {
-			TryCancelAndDisposeAnimation();
-			Canvas.enabled = true;
-			_activeState.Value = true;
-			_animationState.Value = AnimationState.ActiveComplete;
+			try {
+				TryCancelAndDisposeAnimation();
+				Canvas.enabled = true;
+				_activeState.Value = true;
+				_animationState.Value = AnimationState.ActiveComplete;
+			}
+			catch (MissingReferenceException) when (this == null) { }
 		}
 		public void DeActiveImmediate() {
-			TryCancelAndDisposeAnimation();
-			Canvas.enabled = false;
-			_activeState.Value = false;
-			_animationState.Value = AnimationState.DeactiveComplete;
+			try {
+				TryCancelAndDisposeAnimation();
+				Canvas.enabled = false;
+				_activeState.Value = false;
+				_animationState.Value = AnimationState.DeactiveComplete;
+			}
+			catch (MissingReferenceException) when (this == null) { }
 		}
 
 		public async UniTask ActiveWithChildrenAsync(bool forceExecute = false, CancelBehavior cancelBehaviour = CancelBehavior.RollBack, CancellationToken cancellationToken = default) {

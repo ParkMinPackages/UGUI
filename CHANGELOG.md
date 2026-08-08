@@ -4,6 +4,14 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [5.1.0] - 2026-08-08
+
+### Added
+- Added `UILMMoveFromShowAnimation` and `UILMMoveFromHideAnimation` for offset-based LitMotion transitions.
+
+### Fixed
+- Made `UIActivator` activation and deactivation operations complete as no-ops after the component has been destroyed.
+
 ## [5.0.1] - 2026-07-25
 
 ### Fixed
