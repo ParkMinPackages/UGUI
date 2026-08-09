@@ -1,5 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <ui:Toggle label="Start Active State" name="StartActiveStateToggle"/>
+    <ui:Toggle label="Override Start Local Position" name="OverrideStartLocalPositionToggle"/>
+    <ui:Vector3Field label="Start Local Position" name="StartLocalPositionVector3Field"/>
     <ui:Toggle label="Visible" name="VisibleToggle"/>
     <ui:Toggle label="Raycastable" name="RaycastableToggle"/>
     <ui:Toggle label="Interactable" name="InteractableToggle"/>

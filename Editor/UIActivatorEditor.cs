@@ -34,6 +34,7 @@ namespace ParkMinPackages.UGUI.Editor
 
 			//필드 구현
 			ImplementStartActiveStateToggle(root);
+			ImplementStartLocalPosition(root);
 			ImplementVisbleToggle(root);
 			ImplementRaycastableToggle(root);
 			ImplementInteractableToggle(root);
@@ -85,6 +86,18 @@ namespace ParkMinPackages.UGUI.Editor
 		//필드 구현
 		void ImplementStartActiveStateToggle(VisualElement root) {
 			root.Q<Toggle>("StartActiveStateToggle").BindProperty(serializedObject.FindProperty("_startActiveState"));
+		}
+		void ImplementStartLocalPosition(VisualElement root) {
+			Toggle toggle = root.Q<Toggle>("OverrideStartLocalPositionToggle");
+			Vector3Field vector3Field = root.Q<Vector3Field>("StartLocalPositionVector3Field");
+			SerializedProperty overrideStartLocalPositionProperty = serializedObject.FindProperty("_overrideStartLocalPosition");
+			toggle.BindProperty(overrideStartLocalPositionProperty);
+			vector3Field.BindProperty(serializedObject.FindProperty("_startLocalPosition"));
+			vector3Field.style.display = overrideStartLocalPositionProperty.boolValue ? DisplayStyle.Flex : DisplayStyle.None;
+			toggle.RegisterValueChangedCallback(evt =>
+			{
+				vector3Field.style.display = evt.newValue ? DisplayStyle.Flex : DisplayStyle.None;
+			});
 		}
 		void ImplementVisbleToggle(VisualElement root) {
 			Toggle toggle = root.Q<Toggle>("VisibleToggle");

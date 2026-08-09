@@ -380,6 +380,10 @@ namespace ParkMinPackages.UGUI.Components
 		protected override void Awake() {
 			base.Awake();
 
+			if (_overrideStartLocalPosition) {
+				transform.localPosition = _startLocalPosition;
+			}
+
 			if (_startActiveState) {
 				ActiveImmediate();
 			}
@@ -441,6 +445,8 @@ namespace ParkMinPackages.UGUI.Components
 
 		// - Core -
 		[SerializeField] bool _startActiveState = true;
+		[SerializeField] bool _overrideStartLocalPosition;
+		[SerializeField] Vector3 _startLocalPosition;
 		[SerializeField] bool _visible = true;
 		[SerializeField] bool _raycastable = true;
 		[SerializeField] bool _interactable = true;
