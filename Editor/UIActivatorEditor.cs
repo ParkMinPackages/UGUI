@@ -1,9 +1,6 @@
-using System;
 using Cysharp.Threading.Tasks;
 using ParkMinPackages.Foundation.Extensions;
 using ParkMinPackages.UGUI.Components;
-using ParkMinPackages.UGUI.Components.UIActivatorAnimations;
-using R3;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -30,7 +27,6 @@ namespace ParkMinPackages.UGUI.Editor
 
 			//초기화면 구현
 			CollapseFoldout(root);
-			ExpandAdditionalReactivePropertyFoldout(root);
 
 			//필드 구현
 			ImplementStartActiveStateToggle(root);
@@ -42,26 +38,7 @@ namespace ParkMinPackages.UGUI.Editor
 			ImplementDisableRaycastWhileAnimationToggle(root);
 
 			//버튼 구현
-			ImplementActiveDeactiveButton(root);
-
-			//ReactiveProperty 구현
-			ImplementActiveStateToggle(root);
-			ImplementAnimationStateEnumField(root);
-			ImplementActiveCompleteToggle(root);
-			ImplementDeActiveCompleteToggle(root);
-			ImplementDisplayStateToggle(root);
-
-			//Additaionl ReactiveProperty Enable 구현
-			ImplementEnableActiveStateInHierarchyReactivePropertyToggle(root);
-			ImplementEnableActiveCompleteInHierarchyReactivePropertyToggle(root);
-			ImplementEnableDeActiveCompleteInHierarchyReactivePropertyToggle(root);
-			ImplementEnableDisplayStateInHierarchyReactivePropertyToggle(root);
-
-			//Additaionl ReactiveProperty Value 구현
-			ImplementActiveStateInHierarchyValueToggle(root);
-			ImplementActiveCompleteInHierarchyValueToggle(root);
-			ImplementDeActiveCompleteInHierarchyValueToggle(root);
-			ImplementDisplayStateInHierarchyValueToggle(root);
+			ImplementActiveDeactivateButton(root);
 
 			serializedObject.ApplyModifiedProperties();
 
@@ -74,15 +51,6 @@ namespace ParkMinPackages.UGUI.Editor
 				foldout.value = false;
 			}
 		}
-		void ExpandAdditionalReactivePropertyFoldout(VisualElement root) {
-			Foldout additionalReactivePropertyFoldout = root.Q<Foldout>("AdditionalReactivePropertyFoldout");
-            if (additionalReactivePropertyFoldout == null) return;
-			foreach (Foldout foldout in additionalReactivePropertyFoldout.Query<Foldout>().ToList()) {
-				foldout.value = true;
-			}
-			additionalReactivePropertyFoldout.value = false;
-		}
-
 		//필드 구현
 		void ImplementStartActiveStateToggle(VisualElement root) {
 			root.Q<Toggle>("StartActiveStateToggle").BindProperty(serializedObject.FindProperty("_startActiveState"));
@@ -168,7 +136,7 @@ namespace ParkMinPackages.UGUI.Editor
 		}
 
 		//버튼 구현
-		void ImplementActiveDeactiveButton(VisualElement root) {
+		void ImplementActiveDeactivateButton(VisualElement root) {
 			root.Q<Button>("ActiveButton")?.RegisterCallback<ClickEvent>(_ =>
 			{
 				if (target is not UIActivator uiActivator)
@@ -182,15 +150,15 @@ namespace ParkMinPackages.UGUI.Editor
 				EditorUtility.SetDirty(uiActivator.gameObject);
 			});
 
-			root.Q<Button>("DeActiveButton")?.RegisterCallback<ClickEvent>(_ =>
+			root.Q<Button>("DeactivateButton")?.RegisterCallback<ClickEvent>(_ =>
 			{
 				if (target is not UIActivator uiActivator)
 					return;
 
 				if (Application.isPlaying)
-					uiActivator.DeActiveAsync(cancellationToken: Application.exitCancellationToken).Forget();
+					uiActivator.DeactivateAsync(cancellationToken: Application.exitCancellationToken).Forget();
 				else
-					uiActivator.DeActiveImmediate();
+					uiActivator.DeactivateImmediate();
 
 				EditorUtility.SetDirty(uiActivator.gameObject);
 			});
@@ -199,22 +167,22 @@ namespace ParkMinPackages.UGUI.Editor
 			root.Q<Button>("DotweenAddFadeButton")?.RegisterCallback<ClickEvent>(_ =>
 			{
 				UIActivator uiActivator = target as UIActivator;
-				uiActivator.GetOrAddComponent<UIDTFadeShowAnimation>();
-				uiActivator.GetOrAddComponent<UIDTFadeHideAnimation>();
+				uiActivator.GetOrAddComponent<Components.UIActivatorAnimations.DOTweens.UIFadeActiveAnimation>();
+				uiActivator.GetOrAddComponent<Components.UIActivatorAnimations.DOTweens.UIFadeDeactivateAnimation>();
 				EditorUtility.SetDirty(uiActivator.gameObject);
 			});
 			root.Q<Button>("DotweenAddScaleButton")?.RegisterCallback<ClickEvent>(_ =>
 			{
 				UIActivator uiActivator = target as UIActivator;
-				uiActivator.GetOrAddComponent<UIDTScaleShowAnimation>();
-				uiActivator.GetOrAddComponent<UIDTScaleHideAnimation>();
+				uiActivator.GetOrAddComponent<Components.UIActivatorAnimations.DOTweens.UIScaleActiveAnimation>();
+				uiActivator.GetOrAddComponent<Components.UIActivatorAnimations.DOTweens.UIScaleDeactivateAnimation>();
 				EditorUtility.SetDirty(uiActivator.gameObject);
 			});
 			root.Q<Button>("DotweenAddSlideButton")?.RegisterCallback<ClickEvent>(_ =>
 			{
 				UIActivator uiActivator = target as UIActivator;
-				uiActivator.GetOrAddComponent<UIDTSlideShowAnimation>();
-				uiActivator.GetOrAddComponent<UIDTSlideHideAnimation>();
+				uiActivator.GetOrAddComponent<Components.UIActivatorAnimations.DOTweens.UISlideActiveAnimation>();
+				uiActivator.GetOrAddComponent<Components.UIActivatorAnimations.DOTweens.UISlideDeactivateAnimation>();
 				EditorUtility.SetDirty(uiActivator.gameObject);
 			});
 #endif
@@ -223,220 +191,25 @@ namespace ParkMinPackages.UGUI.Editor
 			root.Q<Button>("LitMotionAddFadeButton")?.RegisterCallback<ClickEvent>(_ =>
 			{
 				UIActivator uiActivator = target as UIActivator;
-				uiActivator.GetOrAddComponent<UILMFadeShowAnimation>();
-				uiActivator.GetOrAddComponent<UILMFadeHideAnimation>();
+				uiActivator.GetOrAddComponent<Components.UIActivatorAnimations.LitMotions.UIFadeActiveAnimation>();
+				uiActivator.GetOrAddComponent<Components.UIActivatorAnimations.LitMotions.UIFadeDeactivateAnimation>();
 				EditorUtility.SetDirty(uiActivator.gameObject);
 			});
 			root.Q<Button>("LitMotionAddScaleButton")?.RegisterCallback<ClickEvent>(_ =>
 			{
 				UIActivator uiActivator = target as UIActivator;
-				uiActivator.GetOrAddComponent<UILMScaleShowAnimation>();
-				uiActivator.GetOrAddComponent<UILMScaleHideAnimation>();
+				uiActivator.GetOrAddComponent<Components.UIActivatorAnimations.LitMotions.UIScaleActiveAnimation>();
+				uiActivator.GetOrAddComponent<Components.UIActivatorAnimations.LitMotions.UIScaleDeactivateAnimation>();
 				EditorUtility.SetDirty(uiActivator.gameObject);
 			});
 			root.Q<Button>("LitMotionAddSlideButton")?.RegisterCallback<ClickEvent>(_ =>
 			{
 				UIActivator uiActivator = target as UIActivator;
-				uiActivator.GetOrAddComponent<UILMSlideShowAnimation>();
-				uiActivator.GetOrAddComponent<UILMSlideHideAnimation>();
+				uiActivator.GetOrAddComponent<Components.UIActivatorAnimations.LitMotions.UISlideActiveAnimation>();
+				uiActivator.GetOrAddComponent<Components.UIActivatorAnimations.LitMotions.UISlideDeactivateAnimation>();
 				EditorUtility.SetDirty(uiActivator.gameObject);
 			});
 #endif
-		}
-
-		//ReactiveProperty 구현
-		void ImplementActiveStateToggle(VisualElement root) {
-			Toggle toggle = root.Q<Toggle>("ActiveStateToggle");
-
-			if (target is not UIActivator uiActivator)
-				return;
-
-			IDisposable disposable = uiActivator.ActiveState.Subscribe(value =>
-			{
-				toggle.SetValueWithoutNotify(value);
-			});
-
-			root.RegisterCallback<DetachFromPanelEvent>(_ =>
-			{
-				disposable.Dispose();
-			});
-		}
-		void ImplementAnimationStateEnumField(VisualElement root) {
-			EnumField enumField = root.Q<EnumField>("AnimationStateEnumField");
-
-			if (target is not UIActivator uiActivator)
-				return;
-
-			IDisposable disposable = uiActivator.AnimationState_.Subscribe(value =>
-			{
-				enumField.SetValueWithoutNotify(value);
-			});
-
-			root.RegisterCallback<DetachFromPanelEvent>(_ =>
-			{
-				disposable.Dispose();
-			});
-		}
-		void ImplementActiveCompleteToggle(VisualElement root) {
-			Toggle toggle = root.Q<Toggle>("ActiveCompleteToggle");
-
-			if (target is not UIActivator uiActivator)
-				return;
-
-			IDisposable disposable = uiActivator.ActiveComplete.Subscribe(value =>
-			{
-				toggle.SetValueWithoutNotify(value);
-			});
-
-			root.RegisterCallback<DetachFromPanelEvent>(_ =>
-			{
-				disposable.Dispose();
-			});
-		}
-		void ImplementDeActiveCompleteToggle(VisualElement root) {
-			Toggle toggle = root.Q<Toggle>("DeActiveCompleteToggle");
-
-			if (target is not UIActivator uiActivator)
-				return;
-
-			IDisposable disposable = uiActivator.DeActiveComplete.Subscribe(value =>
-			{
-				toggle.SetValueWithoutNotify(value);
-			});
-
-			root.RegisterCallback<DetachFromPanelEvent>(_ =>
-			{
-				disposable.Dispose();
-			});
-		}
-		void ImplementDisplayStateToggle(VisualElement root) {
-			Toggle toggle = root.Q<Toggle>("DisplayStateToggle");
-
-			if (target is not UIActivator uiActivator)
-				return;
-
-			IDisposable disposable = uiActivator.DisplayState.Subscribe(value =>
-			{
-				toggle.SetValueWithoutNotify(value);
-			});
-
-			root.RegisterCallback<DetachFromPanelEvent>(_ =>
-			{
-				disposable.Dispose();
-			});
-		}
-
-		//Additaionl ReactiveProperty Enable 구현
-		void ImplementEnableActiveStateInHierarchyReactivePropertyToggle(VisualElement root) {
-			Toggle toggle = root.Q<Toggle>("EnableActiveStateInHierarchyReactivePropertyToggle");
-			toggle.BindProperty(serializedObject.FindProperty("_enableActiveStateInHierarchyReactiveProperty"));
-			toggle.RegisterValueChangedCallback(evt =>
-			{
-				if (target is not UIActivator uiActivator)
-					return;
-
-				uiActivator.EnableActiveStateInHierarchyReactiveProperty = evt.newValue;
-			});
-		}
-		void ImplementEnableActiveCompleteInHierarchyReactivePropertyToggle(VisualElement root) {
-			Toggle toggle = root.Q<Toggle>("EnableActiveCompleteInHierarchyReactivePropertyToggle");
-			toggle.BindProperty(serializedObject.FindProperty("_enableActiveCompleteInHierarchyReactiveProperty"));
-			toggle.RegisterValueChangedCallback(evt =>
-			{
-				if (target is not UIActivator uiActivator)
-					return;
-
-				uiActivator.EnableActiveCompleteInHierarchyReactiveProperty = evt.newValue;
-			});
-		}
-		void ImplementEnableDeActiveCompleteInHierarchyReactivePropertyToggle(VisualElement root) {
-			Toggle toggle = root.Q<Toggle>("EnableDeActiveCompleteInHierarchyReactivePropertyToggle");
-			toggle.BindProperty(serializedObject.FindProperty("_enableDeActiveCompleteInHierarchyReactiveProperty"));
-			toggle.RegisterValueChangedCallback(evt =>
-			{
-				if (target is not UIActivator uiActivator)
-					return;
-
-				uiActivator.EnableDeActiveCompleteInHierarchyReactiveProperty = evt.newValue;
-			});
-		}
-		void ImplementEnableDisplayStateInHierarchyReactivePropertyToggle(VisualElement root) {
-			Toggle toggle = root.Q<Toggle>("EnableDisplayStateInHierarchyReactivePropertyToggle");
-			toggle.BindProperty(serializedObject.FindProperty("_enableDisplayStateInHierarchyReactiveProperty"));
-			toggle.RegisterValueChangedCallback(evt =>
-			{
-				if (target is not UIActivator uiActivator)
-					return;
-
-				uiActivator.EnableDisplayStateInHierarchyReactiveProperty = evt.newValue;
-				//EditorUtility.SetDirty(uiActivator.gameObject);
-			});
-		}
-
-		//Additaionl ReactiveProperty Value 구현
-		void ImplementActiveStateInHierarchyValueToggle(VisualElement root) {
-			Toggle toggle = root.Q<Toggle>("ActiveStateInHierarchyValueToggle");
-
-			if (target is not UIActivator uiActivator)
-				return;
-
-			IDisposable disposable = uiActivator.ActiveStateInHierarchy.Subscribe(value =>
-			{
-				toggle.SetValueWithoutNotify(value);
-			});
-
-			root.RegisterCallback<DetachFromPanelEvent>(_ =>
-			{
-				disposable.Dispose();
-			});
-		}
-		void ImplementActiveCompleteInHierarchyValueToggle(VisualElement root) {
-			Toggle toggle = root.Q<Toggle>("ActiveCompleteInHierarchyValueToggle");
-
-			if (target is not UIActivator uiActivator)
-				return;
-
-			IDisposable disposable = uiActivator.ActiveCompleteInHierarchy.Subscribe(value =>
-			{
-				toggle.SetValueWithoutNotify(value);
-			});
-
-			root.RegisterCallback<DetachFromPanelEvent>(_ =>
-			{
-				disposable.Dispose();
-			});
-		}
-		void ImplementDeActiveCompleteInHierarchyValueToggle(VisualElement root) {
-			Toggle toggle = root.Q<Toggle>("DeActiveCompleteInHierarchyValueToggle");
-
-			if (target is not UIActivator uiActivator)
-				return;
-
-			IDisposable disposable = uiActivator.DeActiveCompleteInHierarchy.Subscribe(value =>
-			{
-				toggle.SetValueWithoutNotify(value);
-			});
-
-			root.RegisterCallback<DetachFromPanelEvent>(_ =>
-			{
-				disposable.Dispose();
-			});
-		}
-		void ImplementDisplayStateInHierarchyValueToggle(VisualElement root) {
-			Toggle toggle = root.Q<Toggle>("DisplayStateInHierarchyValueToggle");
-
-			if (target is not UIActivator uiActivator)
-				return;
-
-			IDisposable disposable = uiActivator.DisplayStateInHierarchy.Subscribe(value =>
-			{
-				toggle.SetValueWithoutNotify(value);
-			});
-
-			root.RegisterCallback<DetachFromPanelEvent>(_ =>
-			{
-				disposable.Dispose();
-			});
 		}
 	}
 }

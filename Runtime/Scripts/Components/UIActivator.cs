@@ -6,7 +6,6 @@ using Cysharp.Threading.Tasks;
 using ParkMinPackages.Foundation.Components;
 using ParkMinPackages.UGUI.Components.UIActivatorAnimations;
 using ParkMinPackages.UGUI.Enums;
-using R3;
 using UnityEngine;
 
 namespace ParkMinPackages.UGUI.Components
@@ -17,175 +16,163 @@ namespace ParkMinPackages.UGUI.Components
 	[DisallowMultipleComponent]
 	public class UIActivator : TreeNode<UIActivator>
 	{
-		public enum AnimationState
-		{
-			Activating,
-			ActiveComplete,
-			Deactivating,
-			DeactiveComplete,
-		}
-
 		// ===================== Public API =====================
 
-		public async UniTask ActiveAsync(bool forceExecute = false, CancelBehavior cancelBehaviour = CancelBehavior.RollBack, CancellationToken cancellationToken = default) {
-			try {
-				if (forceExecute == false && _activeState.CurrentValue) {
-					return;
-				}
-
-				ShowAnimation[] showAnimations = _showAnimations.ToArray(); // 원본 변경을 방지하기 위해 복사본
-				if (showAnimations.Any()) {
-					TryCancelAndDisposeAnimation();
-					AllocateToRecentShowHideCTS(cancellationToken);
-					try {
-						_activeState.Value = true;
-						_animationState.Value = AnimationState.Activating;
-
-						Canvas.enabled = true;
-						UpdateRaycastable();
-
-						UniTask[] showAnimationTasks = new UniTask[showAnimations.Length];
-						for (int i = 0; i < showAnimations.Length; i++) {
-							int j = i;
-							showAnimations[j].CaptureCurrent(); // 정상 상태 캡처
-							showAnimationTasks[j] = showAnimations[j].ExecuteAsync(_recentShowHideCTS.Token);
-						}
-						await UniTask.WhenAll(showAnimationTasks);
-
-						_animationState.Value = AnimationState.ActiveComplete;
-					}
-					catch (OperationCanceledException e) {
-						if (cancelBehaviour == CancelBehavior.RollBack) {
-							DeActiveImmediate();
-						}
-						else if (cancelBehaviour == CancelBehavior.Complete) {
-							ActiveImmediate();
-						}
-						throw e;
-					}
-					finally {
-						for (int i = 0; i < showAnimations.Length; i++) showAnimations[i].ApplyCaptured();
-						UpdateRaycastable();
-					}
-				}
-				else {
-					ActiveImmediate();
-				}
+		public async UniTask ActiveAsync(
+			CancellationToken cancellationToken = default,
+			AnimationCancelBehaviour animationCancelBehaviour = AnimationCancelBehaviour.Complete
+		) {
+			cancellationToken.ThrowIfCancellationRequested();
+			if (_isTransitioning) {
+				throw new InvalidOperationException($"{nameof(UIActivator)} '{name}' is already transitioning.");
 			}
-			catch (MissingReferenceException) when (this == null) { }
+			if (_state == UIActivationState.Active) return;
+
+			ActiveAnimation[] activeAnimations = _activeAnimations.ToArray();
+			DeactivateAnimation[] deactivateAnimations = _deactivateAnimations.ToArray();
+			_isTransitioning = true;
+			UpdateRaycastable();
+
+			try {
+				Canvas.enabled = false;
+				ApplyStart(deactivateAnimations);
+				ApplyStart(activeAnimations);
+				Canvas.enabled = true;
+				await ExecuteAnimationsAsync(activeAnimations, cancellationToken);
+				cancellationToken.ThrowIfCancellationRequested();
+				ApplyEnd(activeAnimations);
+				_state = UIActivationState.Active;
+			}
+			catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) {
+				ApplyActiveCancellation(activeAnimations, animationCancelBehaviour);
+				throw;
+			}
+			catch {
+				_state = UIActivationState.Canceled;
+				throw;
+			}
+			finally {
+				_isTransitioning = false;
+				UpdateRaycastable();
+			}
 		}
-		public async UniTask DeActiveAsync(bool forceExecute = false, CancelBehavior cancelBehaviour = CancelBehavior.Complete, CancellationToken cancellationToken = default) {
-			try {
-				if (forceExecute == false && _activeState.CurrentValue == false) {
-					return;
-				}
-
-				HideAnimation[] hideAnimations = _hideAnimations.ToArray(); // 원본 변경을 방지하기 위해 복사본
-
-				if (hideAnimations.Any()) {
-					TryCancelAndDisposeAnimation();
-					AllocateToRecentShowHideCTS(cancellationToken);
-					try {
-						_activeState.Value = false;
-						_animationState.Value = AnimationState.Deactivating;
-
-						Canvas.enabled = true;
-						UpdateRaycastable();
-
-						UniTask[] hideAnimationTasks = new UniTask[hideAnimations.Length];
-						for (int i = 0; i < hideAnimations.Length; i++) {
-							int j = i;
-							hideAnimations[j].CaptureCurrent(); // 정상 상태 캡처
-							hideAnimationTasks[j] = hideAnimations[j].ExecuteAsync(_recentShowHideCTS.Token);
-						}
-
-						await UniTask.WhenAll(hideAnimationTasks);
-
-						Canvas.enabled = false;
-
-						_animationState.Value = AnimationState.DeactiveComplete;
-					}
-					catch (OperationCanceledException e) {
-						if (cancelBehaviour == CancelBehavior.RollBack) {
-							ActiveImmediate();
-						}
-						else if (cancelBehaviour == CancelBehavior.Complete) {
-							DeActiveImmediate();
-						}
-						throw e;
-					}
-					finally {
-						for (int i = 0; i < hideAnimations.Length; i++) hideAnimations[i].ApplyCaptured();
-						UpdateRaycastable();
-					}
-				}
-				else {
-					DeActiveImmediate();
-				}
+		public async UniTask DeactivateAsync(
+			CancellationToken cancellationToken = default,
+			AnimationCancelBehaviour animationCancelBehaviour = AnimationCancelBehaviour.Complete
+		) {
+			cancellationToken.ThrowIfCancellationRequested();
+			if (_isTransitioning) {
+				throw new InvalidOperationException($"{nameof(UIActivator)} '{name}' is already transitioning.");
 			}
-			catch (MissingReferenceException) when (this == null) { }
+			if (_state == UIActivationState.Inactive) return;
+
+			ActiveAnimation[] activeAnimations = _activeAnimations.ToArray();
+			DeactivateAnimation[] deactivateAnimations = _deactivateAnimations.ToArray();
+			_isTransitioning = true;
+			UpdateRaycastable();
+
+			try {
+				Canvas.enabled = true;
+				ApplyEnd(activeAnimations);
+				ApplyStart(deactivateAnimations);
+				await ExecuteAnimationsAsync(deactivateAnimations, cancellationToken);
+				cancellationToken.ThrowIfCancellationRequested();
+				ApplyEnd(deactivateAnimations);
+				Canvas.enabled = false;
+				_state = UIActivationState.Inactive;
+			}
+			catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) {
+				ApplyDeactivateCancellation(deactivateAnimations, animationCancelBehaviour);
+				throw;
+			}
+			catch {
+				_state = UIActivationState.Canceled;
+				throw;
+			}
+			finally {
+				_isTransitioning = false;
+				UpdateRaycastable();
+			}
 		}
 		public void ActiveImmediate() {
-			try {
-				TryCancelAndDisposeAnimation();
-				Canvas.enabled = true;
-				_activeState.Value = true;
-				_animationState.Value = AnimationState.ActiveComplete;
+			if (_isTransitioning) {
+				throw new InvalidOperationException($"{nameof(UIActivator)} '{name}' is already transitioning.");
 			}
-			catch (MissingReferenceException) when (this == null) { }
+			ActiveAnimation[] activeAnimations = _activeAnimations.ToArray();
+			DeactivateAnimation[] deactivateAnimations = _deactivateAnimations.ToArray();
+			ApplyStart(deactivateAnimations);
+			ApplyEnd(activeAnimations);
+			Canvas.enabled = true;
+			_state = UIActivationState.Active;
+			UpdateRaycastable();
 		}
-		public void DeActiveImmediate() {
-			try {
-				TryCancelAndDisposeAnimation();
-				Canvas.enabled = false;
-				_activeState.Value = false;
-				_animationState.Value = AnimationState.DeactiveComplete;
+		public void DeactivateImmediate() {
+			if (_isTransitioning) {
+				throw new InvalidOperationException($"{nameof(UIActivator)} '{name}' is already transitioning.");
 			}
-			catch (MissingReferenceException) when (this == null) { }
+			ActiveAnimation[] activeAnimations = _activeAnimations.ToArray();
+			DeactivateAnimation[] deactivateAnimations = _deactivateAnimations.ToArray();
+			ApplyEnd(activeAnimations);
+			ApplyEnd(deactivateAnimations);
+			Canvas.enabled = false;
+			_state = UIActivationState.Inactive;
+			UpdateRaycastable();
 		}
 
-		public async UniTask ActiveWithChildrenAsync(bool forceExecute = false, CancelBehavior cancelBehaviour = CancelBehavior.RollBack, CancellationToken cancellationToken = default) {
-			int count = ChildNodesEnumerable().Count();
-			UniTask[] tasks = new UniTask[count];
+		public async UniTask ActiveWithChildrenAsync(
+			CancellationToken cancellationToken = default,
+			AnimationCancelBehaviour animationCancelBehaviour = AnimationCancelBehaviour.Complete
+		) {
+			cancellationToken.ThrowIfCancellationRequested();
+			UIActivator[] uiActivators = ChildNodesEnumerable().ToArray();
+			EnsureNoneTransitioning(uiActivators);
+			UniTask[] tasks = new UniTask[uiActivators.Length];
 
-			int i = 0;
-			foreach (UIActivator eachUIActivator in ChildNodesEnumerable()) {
-				tasks[i++] = eachUIActivator.ActiveAsync(forceExecute, cancelBehaviour, cancellationToken);
+			for (int i = 0; i < uiActivators.Length; i++) {
+				tasks[i] = uiActivators[i].ActiveAsync(cancellationToken, animationCancelBehaviour);
 			}
 			await UniTask.WhenAll(tasks);
 		}
-		public async UniTask DeActiveWithChildrenAsync(bool forceExecute = false, CancelBehavior cancelBehaviour = CancelBehavior.Complete, CancellationToken cancellationToken = default) {
-			int count = ChildNodesEnumerable().Count();
-			UniTask[] tasks = new UniTask[count];
+		public async UniTask DeactivateWithChildrenAsync(
+			CancellationToken cancellationToken = default,
+			AnimationCancelBehaviour animationCancelBehaviour = AnimationCancelBehaviour.Complete
+		) {
+			cancellationToken.ThrowIfCancellationRequested();
+			UIActivator[] uiActivators = ChildNodesEnumerable().ToArray();
+			EnsureNoneTransitioning(uiActivators);
+			UniTask[] tasks = new UniTask[uiActivators.Length];
 
-			int i = 0;
-			foreach (UIActivator eachUIActivator in ChildNodesEnumerable()) {
-				tasks[i++] = eachUIActivator.DeActiveAsync(forceExecute, cancelBehaviour, cancellationToken);
+			for (int i = 0; i < uiActivators.Length; i++) {
+				tasks[i] = uiActivators[i].DeactivateAsync(cancellationToken, animationCancelBehaviour);
 			}
 			await UniTask.WhenAll(tasks);
 		}
 		public void ActiveWithChildrenImmediate() {
-			foreach (UIActivator eachUIActivator in ChildNodesEnumerable()) {
-				eachUIActivator.ActiveImmediate();
+			UIActivator[] uiActivators = ChildNodesEnumerable().ToArray();
+			EnsureNoneTransitioning(uiActivators);
+			for (int i = 0; i < uiActivators.Length; i++) {
+				uiActivators[i].ActiveImmediate();
 			}
 		}
-		public void DeActiveWithChildrenImmediate() {
-			foreach (UIActivator eachUIActivator in ChildNodesEnumerable()) {
-				eachUIActivator.DeActiveImmediate();
+		public void DeactivateWithChildrenImmediate() {
+			UIActivator[] uiActivators = ChildNodesEnumerable().ToArray();
+			EnsureNoneTransitioning(uiActivators);
+			for (int i = 0; i < uiActivators.Length; i++) {
+				uiActivators[i].DeactivateImmediate();
 			}
 		}
 
-		public void RegisterShowAnimation(ShowAnimation showAnimation) {
-			_showAnimations.Add(showAnimation);
+		internal void RegisterActiveAnimation(ActiveAnimation activeAnimation) {
+			_activeAnimations.Add(activeAnimation);
 		}
-		public void UnregisterShowAnimation(ShowAnimation showAnimation) {
-			_showAnimations.Remove(showAnimation);
+		internal void UnregisterActiveAnimation(ActiveAnimation activeAnimation) {
+			_activeAnimations.Remove(activeAnimation);
 		}
-		public void RegisterHideAnimation(HideAnimation hideAnimation) {
-			_hideAnimations.Add(hideAnimation);
+		internal void RegisterDeactivateAnimation(DeactivateAnimation deactivateAnimation) {
+			_deactivateAnimations.Add(deactivateAnimation);
 		}
-		public void UnRegisterHideAnimation(HideAnimation hideAnimation) {
-			_hideAnimations.Remove(hideAnimation);
+		internal void UnregisterDeactivateAnimation(DeactivateAnimation deactivateAnimation) {
+			_deactivateAnimations.Remove(deactivateAnimation);
 		}
 
 		// ===================== Public Property =====================
@@ -196,7 +183,7 @@ namespace ParkMinPackages.UGUI.Components
 			set
 			{
 				_visible = value;
-				UpdateVisbleAndFade();
+				UpdateVisibleAndFade();
 			}
 		}
 		public bool Raycastable
@@ -223,7 +210,7 @@ namespace ParkMinPackages.UGUI.Components
 			set
 			{
 				_fade = Mathf.Clamp(value, 0.0f, 1.0f);
-				UpdateVisbleAndFade();
+				UpdateVisibleAndFade();
 			}
 		}
 		public bool DisableRaycastWhileAnimation
@@ -235,118 +222,18 @@ namespace ParkMinPackages.UGUI.Components
 				UpdateRaycastable();
 			}
 		}
-		public bool EnableActiveStateInHierarchyReactiveProperty
-		{
-			get { return _enableActiveStateInHierarchyReactiveProperty; }
-			set
-			{
-				_enableActiveStateInHierarchyReactiveProperty = value;
-				if (Application.isPlaying == false) return;
-				_activeStateInHierarchyDisposable?.Dispose();
-				if (_enableActiveStateInHierarchyReactiveProperty) {
-					IEnumerable<ReactiveProperty<bool>> observables = ParentNodesEnumerable().Select(uiActivator => uiActivator._activeState);
-					// 모든 부모가 true일때만 true
-					_activeStateInHierarchyDisposable = Observable.CombineLatest(observables)
-					                                              .Subscribe(values =>
-					                                               {
-						                                               _activeStateInHierarchy.Value = values.All(x => x);
-					                                               });
-				}
-			}
-		}
-		public bool EnableActiveCompleteInHierarchyReactiveProperty
-		{
-			get { return _enableActiveCompleteInHierarchyReactiveProperty; }
-			set
-			{
-				_enableActiveCompleteInHierarchyReactiveProperty = value;
-				if (Application.isPlaying == false) return;
-				_activeCompleteInHierarchyDisposable?.Dispose();
-				if (_enableActiveCompleteInHierarchyReactiveProperty) {
-					IEnumerable<ReactiveProperty<bool>> observables = ParentNodesEnumerable().Select(uiActivator => uiActivator._activeComplete);
-					// 모든 부모가 true일때만 true
-					_activeCompleteInHierarchyDisposable = Observable.CombineLatest(observables)
-					                                                 .Subscribe(values =>
-					                                                  {
-						                                                  _activeCompleteInHierarchy.Value = values.All(x => x);
-					                                                  });
-				}
-			}
-		}
-		public bool EnableDeActiveCompleteInHierarchyReactiveProperty
-		{
-			get { return _enableDeActiveCompleteInHierarchyReactiveProperty; }
-			set
-			{
-				_enableDeActiveCompleteInHierarchyReactiveProperty = value;
-				if (Application.isPlaying == false) return;
-				_deActiveCompleteInHierarchyDisposable?.Dispose();
-				if (_enableDeActiveCompleteInHierarchyReactiveProperty) {
-					IEnumerable<ReactiveProperty<bool>> observables = ParentNodesEnumerable().Select(uiActivator => uiActivator._deActiveComplete);
-					// 부모중 하나라도 true면 true
-					_deActiveCompleteInHierarchyDisposable = Observable.CombineLatest(observables)
-					                                                   .Subscribe(values =>
-					                                                    {
-						                                                    _deActiveCompleteInHierarchy.Value = values.Any(x => x);
-					                                                    });
-				}
-			}
-		}
-		public bool EnableDisplayStateInHierarchyReactiveProperty
-		{
-			get { return _enableDisplayStateInHierarchyReactiveProperty; }
-			set
-			{
-				_enableDisplayStateInHierarchyReactiveProperty = value;
-				if (Application.isPlaying == false) return;
-				_displayStateInHierarchyDisposable?.Dispose();
-				if (_enableDisplayStateInHierarchyReactiveProperty) {
-					IEnumerable<ReactiveProperty<bool>> observables = ParentNodesEnumerable().Select(uiActivator => uiActivator._displayState);
-					// 부모중 하나라도 false면 false, 모든 부모가 true일때만 true
-					_displayStateInHierarchyDisposable = Observable.CombineLatest(observables)
-					                                               .Subscribe(values =>
-					                                                {
-						                                                _displayStateInHierarchy.Value = values.All(x => x);
-					                                                });
-				}
-			}
-		}
 
-		public ReadOnlyReactiveProperty<bool> ActiveState
+		public UIActivationState State
 		{
-			get { return _activeState; }
+			get { return _state; }
 		}
-		public ReadOnlyReactiveProperty<AnimationState> AnimationState_
+		public bool IsActive
 		{
-			get { return _animationState; }
+			get { return _state == UIActivationState.Active; }
 		}
-		public ReadOnlyReactiveProperty<bool> ActiveComplete
+		public bool IsTransitioning
 		{
-			get { return _activeComplete; }
-		}
-		public ReadOnlyReactiveProperty<bool> DeActiveComplete
-		{
-			get { return _deActiveComplete; }
-		}
-		public ReadOnlyReactiveProperty<bool> DisplayState
-		{
-			get { return _displayState; }
-		}
-		public ReadOnlyReactiveProperty<bool> ActiveStateInHierarchy
-		{
-			get { return _activeStateInHierarchy; }
-		}
-		public ReadOnlyReactiveProperty<bool> ActiveCompleteInHierarchy
-		{
-			get { return _activeCompleteInHierarchy; }
-		}
-		public ReadOnlyReactiveProperty<bool> DeActiveCompleteInHierarchy
-		{
-			get { return _deActiveCompleteInHierarchy; }
-		}
-		public ReadOnlyReactiveProperty<bool> DisplayStateInHierarchy
-		{
-			get { return _displayStateInHierarchy; }
+			get { return _isTransitioning; }
 		}
 
 		// - Components -
@@ -366,15 +253,6 @@ namespace ParkMinPackages.UGUI.Components
 				return _canvas;
 			}
 		}
-		public IReadOnlyList<ShowAnimation> ShowAnimations
-		{
-			get { return _showAnimations; }
-		}
-		public IReadOnlyList<HideAnimation> HideAnimations
-		{
-			get { return _hideAnimations; }
-		}
-
 		// ===================== Handlers =====================
 
 		protected override void Awake() {
@@ -384,64 +262,19 @@ namespace ParkMinPackages.UGUI.Components
 				transform.localPosition = _startLocalPosition;
 			}
 
-			if (_startActiveState) {
-				ActiveImmediate();
-			}
-			else {
-				DeActiveImmediate();
-			}
-			Visible = _visible;
-			Raycastable = _raycastable;
-			Interactable = _interactable;
-			Fade = _fade;
-			DisableRaycastWhileAnimation = _disableRaycastWhileAnimation;
-
-			//Ready
-			_activeState.CombineLatest(_animationState, (active, animationState) => active && animationState == AnimationState.ActiveComplete)
-			            .Subscribe(activeComplete =>
-			             {
-				             _activeComplete.Value = activeComplete;
-			             })
-			            .AddTo(gameObject);
-
-			_activeState.CombineLatest(_animationState, (active, animationState) => active == false && animationState == AnimationState.DeactiveComplete)
-			            .Subscribe(deActiveComplete =>
-			             {
-				             _deActiveComplete.Value = deActiveComplete;
-			             })
-			            .AddTo(gameObject);
-
-			_animationState.Subscribe(animationState =>
-			{
-				switch (animationState) {
-					case AnimationState.Activating:
-					case AnimationState.ActiveComplete:
-					case AnimationState.Deactivating:
-						_displayState.Value = true;
-						break;
-					case AnimationState.DeactiveComplete:
-						_displayState.Value = false;
-						break;
-				}
-			}).AddTo(gameObject);
+			Canvas.enabled = _startActiveState;
+			_state = _startActiveState ? UIActivationState.Active : UIActivationState.Inactive;
+			_fade = Mathf.Clamp01(_fade);
+			UpdateVisibleAndFade();
+			CanvasGroup.interactable = _interactable;
+			UpdateRaycastable();
 		}
-		protected override void Start() {
-			base.Start();
-			UpdateStateInHierarchyVariables(); // 부모를 고려해야하는 함수 이므로 TreeNode 초기화 후에 사용
-		}
-		protected override void OnTreeNodeInited() {
-			if (IsStarted) {
-				UpdateStateInHierarchyVariables(); // 부모를 고려해야하는 함수 이므로 TreeNode 상태 변경될때도 사용
-			}
-		}
-
-
 		// ===================== Internals =====================
 		// - Components -
 		CanvasGroup _canvasGroup;
 		Canvas _canvas;
-		List<ShowAnimation> _showAnimations = new List<ShowAnimation>();
-		List<HideAnimation> _hideAnimations = new List<HideAnimation>();
+		readonly List<ActiveAnimation> _activeAnimations = new List<ActiveAnimation>();
+		readonly List<DeactivateAnimation> _deactivateAnimations = new List<DeactivateAnimation>();
 
 		// - Core -
 		[SerializeField] bool _startActiveState = true;
@@ -452,67 +285,88 @@ namespace ParkMinPackages.UGUI.Components
 		[SerializeField] bool _interactable = true;
 		[SerializeField] float _fade = 1f;
 		[SerializeField] bool _disableRaycastWhileAnimation = true;
-		[SerializeField] bool _enableActiveStateInHierarchyReactiveProperty;
-		[SerializeField] bool _enableActiveCompleteInHierarchyReactiveProperty;
-		[SerializeField] bool _enableDeActiveCompleteInHierarchyReactiveProperty;
-		[SerializeField] bool _enableDisplayStateInHierarchyReactiveProperty;
 
-		[SerializeField] SerializableReactiveProperty<bool> _activeState = new SerializableReactiveProperty<bool>();
-		[SerializeField] SerializableReactiveProperty<AnimationState> _animationState = new SerializableReactiveProperty<AnimationState>();
-		[SerializeField] SerializableReactiveProperty<bool> _activeComplete = new SerializableReactiveProperty<bool>();
-		[SerializeField] SerializableReactiveProperty<bool> _deActiveComplete = new SerializableReactiveProperty<bool>();
-		[SerializeField] SerializableReactiveProperty<bool> _displayState = new SerializableReactiveProperty<bool>(); //실질적으로 눈에 보이는지
+		UIActivationState _state;
+		bool _isTransitioning;
 
-		[SerializeField] SerializableReactiveProperty<bool> _activeStateInHierarchy = new SerializableReactiveProperty<bool>(); // 모든 부모가 true일때만 true
-		[SerializeField] SerializableReactiveProperty<bool> _activeCompleteInHierarchy = new SerializableReactiveProperty<bool>(); // 모든 부모가 true일때만 true
-		[SerializeField] SerializableReactiveProperty<bool> _deActiveCompleteInHierarchy = new SerializableReactiveProperty<bool>(); // 부모중 하나라도 true면 true
-		[SerializeField] SerializableReactiveProperty<bool> _displayStateInHierarchy = new SerializableReactiveProperty<bool>(); // 부모중 하나라도 false면 false, 모든 부모가 true일때만 true
-
-		IDisposable _activeStateInHierarchyDisposable;
-		IDisposable _activeCompleteInHierarchyDisposable;
-		IDisposable _deActiveCompleteInHierarchyDisposable;
-		IDisposable _displayStateInHierarchyDisposable;
-
-		void UpdateVisbleAndFade() {
-			if (_visible) {
-				CanvasGroup.alpha = _fade;
+		static void ApplyStart(UIAnimation[] animations) {
+			for (int i = 0; i < animations.Length; i++) {
+				animations[i].ApplyStart();
 			}
-			else {
-				CanvasGroup.alpha = 0f;
+		}
+		static void ApplyEnd(UIAnimation[] animations) {
+			for (int i = 0; i < animations.Length; i++) {
+				animations[i].ApplyEnd();
 			}
+		}
+		static async UniTask ExecuteAnimationsAsync(
+			UIAnimation[] animations,
+			CancellationToken cancellationToken
+		) {
+			UniTask[] animationTasks = new UniTask[animations.Length];
+			for (int i = 0; i < animations.Length; i++) {
+				animationTasks[i] = animations[i].ExecuteAsync(cancellationToken);
+			}
+			await UniTask.WhenAll(animationTasks);
+		}
+		void ApplyActiveCancellation(
+			ActiveAnimation[] activeAnimations,
+			AnimationCancelBehaviour animationCancelBehaviour
+		) {
+			switch (animationCancelBehaviour) {
+				case AnimationCancelBehaviour.Stop:
+					_state = UIActivationState.Canceled;
+					break;
+				case AnimationCancelBehaviour.Complete:
+					ApplyEnd(activeAnimations);
+					Canvas.enabled = true;
+					_state = UIActivationState.Active;
+					break;
+				case AnimationCancelBehaviour.ResetToStart:
+					ApplyStart(activeAnimations);
+					Canvas.enabled = false;
+					_state = UIActivationState.Inactive;
+					break;
+				default:
+					throw new ArgumentOutOfRangeException(nameof(animationCancelBehaviour), animationCancelBehaviour, null);
+			}
+		}
+		void ApplyDeactivateCancellation(
+			DeactivateAnimation[] deactivateAnimations,
+			AnimationCancelBehaviour animationCancelBehaviour
+		) {
+			switch (animationCancelBehaviour) {
+				case AnimationCancelBehaviour.Stop:
+					_state = UIActivationState.Canceled;
+					break;
+				case AnimationCancelBehaviour.Complete:
+					ApplyEnd(deactivateAnimations);
+					Canvas.enabled = false;
+					_state = UIActivationState.Inactive;
+					break;
+				case AnimationCancelBehaviour.ResetToStart:
+					ApplyStart(deactivateAnimations);
+					Canvas.enabled = true;
+					_state = UIActivationState.Active;
+					break;
+				default:
+					throw new ArgumentOutOfRangeException(nameof(animationCancelBehaviour), animationCancelBehaviour, null);
+			}
+		}
+		static void EnsureNoneTransitioning(UIActivator[] uiActivators) {
+			for (int i = 0; i < uiActivators.Length; i++) {
+				if (uiActivators[i]._isTransitioning) {
+					throw new InvalidOperationException($"{nameof(UIActivator)} '{uiActivators[i].name}' is already transitioning.");
+				}
+			}
+		}
+		void UpdateVisibleAndFade() {
+			CanvasGroup.alpha = _visible ? _fade : 0f;
 		}
 		void UpdateRaycastable() {
-			if (_disableRaycastWhileAnimation) {
-				if (Application.isPlaying && _animationState.Value == AnimationState.Activating || _animationState.Value == AnimationState.Deactivating) {
-					CanvasGroup.blocksRaycasts = false;
-				}
-				else {
-					CanvasGroup.blocksRaycasts = _raycastable;
-				}
-			}
-			else {
-				CanvasGroup.blocksRaycasts = _raycastable;
-			}
-		}
-		void UpdateStateInHierarchyVariables() { // 부모를 고려해야하는 함수 이므로 TreeNode 초기화 후에 사용해야함
-			EnableActiveStateInHierarchyReactiveProperty = _enableActiveStateInHierarchyReactiveProperty;
-			EnableActiveCompleteInHierarchyReactiveProperty = _enableActiveCompleteInHierarchyReactiveProperty;
-			EnableDeActiveCompleteInHierarchyReactiveProperty = _enableDeActiveCompleteInHierarchyReactiveProperty;
-			EnableDisplayStateInHierarchyReactiveProperty = _enableDisplayStateInHierarchyReactiveProperty;
-		}
-
-		// - CancellationToken Utility -
-		CancellationTokenSource _recentShowHideCTS;
-		void AllocateToRecentShowHideCTS(CancellationToken cancellationToken) {
-			_recentShowHideCTS = CancellationTokenSource.CreateLinkedTokenSource(destroyCancellationToken, cancellationToken);
-		}
-		void TryCancelAndDisposeAnimation() {
-			if (_recentShowHideCTS != null) {
-				CancellationTokenSource cts = _recentShowHideCTS;
-				_recentShowHideCTS = null;
-				cts.Cancel();
-				cts.Dispose();
-			}
+			CanvasGroup.blocksRaycasts =
+				_raycastable &&
+				(_disableRaycastWhileAnimation == false || _isTransitioning == false);
 		}
 	}
 }

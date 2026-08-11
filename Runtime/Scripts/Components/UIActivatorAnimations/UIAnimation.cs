@@ -2,6 +2,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using ParkMinPackages.Foundation.Components;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace ParkMinPackages.UGUI.Components.UIActivatorAnimations
 {
@@ -9,16 +10,15 @@ namespace ParkMinPackages.UGUI.Components.UIActivatorAnimations
 	public abstract class UIAnimation : ExtendedBehaviour
 	{
 		public abstract UniTask ExecuteAsync(CancellationToken cancellationToken = default);
-		public abstract void CaptureCurrent();
-		public abstract void ApplyCaptured();
-
+		public abstract void ApplyStart();
+		public abstract void ApplyEnd();
 
 		public UIActivator UIActivator { get; private set; }
 
 		public RectTransform Target
 		{
-			get { return target; }
-			set { target = value; }
+			get { return _target; }
+			set { _target = value; }
 		}
 
 		protected virtual void Awake() {
@@ -28,29 +28,30 @@ namespace ParkMinPackages.UGUI.Components.UIActivatorAnimations
 			Target = GetComponent<RectTransform>();
 		}
 
-		[SerializeField] RectTransform target;
+		[FormerlySerializedAs("target")]
+		[SerializeField] RectTransform _target;
 	}
 
-	public abstract class ShowAnimation : UIAnimation
+	public abstract class ActiveAnimation : UIAnimation
 	{
 		protected override void OnEnable() {
 			base.OnEnable();
-			UIActivator.RegisterShowAnimation(this);
+			UIActivator.RegisterActiveAnimation(this);
 		}
 		protected override void OnDisable() {
 			base.OnDisable();
-			UIActivator.UnregisterShowAnimation(this);
+			UIActivator.UnregisterActiveAnimation(this);
 		}
 	}
-	public abstract class HideAnimation : UIAnimation
+	public abstract class DeactivateAnimation : UIAnimation
 	{
 		protected override void OnEnable() {
 			base.OnEnable();
-			UIActivator.RegisterHideAnimation(this);
+			UIActivator.RegisterDeactivateAnimation(this);
 		}
 		protected override void OnDisable() {
 			base.OnDisable();
-			UIActivator.UnRegisterHideAnimation(this);
+			UIActivator.UnregisterDeactivateAnimation(this);
 		}
 	}
 }

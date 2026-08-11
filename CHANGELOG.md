@@ -4,6 +4,27 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [6.0.0] - 2026-08-11
+
+### Breaking Changes
+- Replaced the reactive `UIActivator` transition model with explicit `Active`, `Inactive`, and `Canceled` states.
+- Renamed deactivation APIs from `DeActive` to `Deactivate` and removed forced transition execution.
+- Replaced captured animation values with explicit `ApplyStart` and `ApplyEnd` animation contracts.
+- Renamed show and hide animations to active and deactivate animations.
+- Moved LitMotion and DOTween animations into dedicated `LitMotions` and `DOTweens` namespaces and renamed their concrete components.
+
+### Added
+- Added `AnimationCancelBehaviour` with `Stop`, `Complete`, and `ResetToStart` policies as transition parameters.
+- Added serialized start and end values to the UI animation components.
+
+### Changed
+- Simplified transition error handling so caller cancellation is rethrown and unexpected errors propagate unchanged.
+- Preserved animation component GUIDs while reorganizing their folders and namespaces.
+- Updated the `UIActivator` Inspector to use the renamed transition APIs and animation components.
+
+### Removed
+- Removed hierarchy-wide reactive state tracking and internal linked cancellation token management from `UIActivator`.
+
 ## [5.2.1] - 2026-08-10
 
 ### Changed
