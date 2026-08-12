@@ -13,39 +13,37 @@ namespace ParkMinPackages.UGUI.Components.UIActivatorAnimations.DOTweens
 	{
 		public override Tween CreateTween() {
 			return Target.DOLocalMove(GetHiddenPosition(), Duration)
-			             .From(ShownPosition)
+			             .From(_capturedPosition)
 			             .SetEase(Ease);
 		}
-		public override void ApplyStart() {
-			Target.localPosition = ShownPosition;
-		}
-		public override void ApplyEnd() {
-			Target.localPosition = GetHiddenPosition();
-		}
-
 		public float Duration = 0.2f;
 		public Ease Ease = Ease.Unset;
 		public Direction DisappearingDirection;
-		public Vector3 ShownPosition;
 
 		protected override void Awake() {
 			base.Awake();
 			_rootCanvasRectTransform = GetComponentInParent<Canvas>().rootCanvas.GetComponent<RectTransform>();
 		}
-
+		protected override void CaptureValues() {
+			_capturedPosition = Target.localPosition;
+		}
+		protected override void RestoreCapturedValues() {
+			Target.localPosition = _capturedPosition;
+		}
 		RectTransform _rootCanvasRectTransform;
+		Vector3 _capturedPosition;
 
 		Vector3 GetHiddenPosition() {
 			Vector3 canvasSize = _rootCanvasRectTransform.rect.size;
 			switch (DisappearingDirection) {
 				case Direction.Left:
-					return ShownPosition + new Vector3(-canvasSize.x, 0, 0);
+					return _capturedPosition + new Vector3(-canvasSize.x, 0, 0);
 				case Direction.Right:
-					return ShownPosition + new Vector3(canvasSize.x, 0, 0);
+					return _capturedPosition + new Vector3(canvasSize.x, 0, 0);
 				case Direction.Top:
-					return ShownPosition + new Vector3(0, canvasSize.y, 0);
+					return _capturedPosition + new Vector3(0, canvasSize.y, 0);
 				case Direction.Bottom:
-					return ShownPosition + new Vector3(0, -canvasSize.y, 0);
+					return _capturedPosition + new Vector3(0, -canvasSize.y, 0);
 				default:
 					throw new ArgumentOutOfRangeException();
 			}

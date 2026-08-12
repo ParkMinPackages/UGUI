@@ -4,6 +4,22 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [7.0.0] - 2026-08-12
+
+### Breaking Changes
+- Replaced the `UIAnimation` start/end application contract with per-transition value capture and restoration.
+- Removed `Canceled` from `UIActivationState` and `Stop` from `AnimationCancelBehaviour` so every completed or canceled transition resolves to an active or inactive state.
+- Renamed the LitMotion move components to `UIMoveFromActiveAnimation` and `UIMoveFromDeactivateAnimation`.
+- Renamed fade and scale effect fields to `Alpha` and `Scale`; existing serialized values are preserved through migration attributes.
+
+### Changed
+- Capture current position, scale, and alpha values before every transition instead of retaining a permanent snapshot.
+- Restore captured presentation values after activation, deactivation, cancellation, and unexpected animation failures while using the Canvas state for stable visibility.
+- Allow activation and deactivation without animation components to complete immediately through the same transition path.
+
+### Fixed
+- Preserve the previous stable Canvas and presentation state when an unexpected animation exception is propagated.
+
 ## [6.0.0] - 2026-08-11
 
 ### Breaking Changes

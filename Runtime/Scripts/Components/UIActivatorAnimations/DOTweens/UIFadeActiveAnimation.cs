@@ -3,6 +3,7 @@ using DG.Tweening;
 using ParkMinPackages.Foundation.Extensions;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.Serialization;
 
 namespace ParkMinPackages.UGUI.Components.UIActivatorAnimations.DOTweens
 {
@@ -11,21 +12,21 @@ namespace ParkMinPackages.UGUI.Components.UIActivatorAnimations.DOTweens
 	public class UIFadeActiveAnimation : UIDOTweenActiveAnimation
 	{
 		public override Tween CreateTween() {
-			return CanvasGroup.DOFade(EndAlpha, Duration).From(StartAlpha).SetEase(Ease);
+			return CanvasGroup.DOFade(_capturedAlpha, Duration).From(Alpha).SetEase(Ease);
 		}
-		public override void ApplyStart() {
-			CanvasGroup.alpha = StartAlpha;
-		}
-		public override void ApplyEnd() {
-			CanvasGroup.alpha = EndAlpha;
-		}
-
 		public float Duration = 0.3f;
 		public Ease Ease = Ease.Unset;
-		public float StartAlpha;
-		public float EndAlpha = 1f;
+		[FormerlySerializedAs("StartAlpha")]
+		public float Alpha;
 
+		protected override void CaptureValues() {
+			_capturedAlpha = CanvasGroup.alpha;
+		}
+		protected override void RestoreCapturedValues() {
+			CanvasGroup.alpha = _capturedAlpha;
+		}
 		CanvasGroup _canvasGroup;
+		float _capturedAlpha;
 
 		CanvasGroup CanvasGroup
 		{

@@ -3,6 +3,7 @@ using LitMotion;
 using ParkMinPackages.Foundation.Extensions;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.Serialization;
 
 namespace ParkMinPackages.UGUI.Components.UIActivatorAnimations.LitMotions
 {
@@ -11,25 +12,25 @@ namespace ParkMinPackages.UGUI.Components.UIActivatorAnimations.LitMotions
 	public class UIFadeActiveAnimation : UILitMotionActiveAnimation
 	{
 		public override MotionHandle CreateMotion() {
-			return LMotion.Create(StartAlpha, EndAlpha, Duration)
+			return LMotion.Create(Alpha, _capturedAlpha, Duration)
 			              .WithEase(Ease)
 			              .WithCancelOnError()
 			              .Bind(x => CanvasGroup.alpha = x)
 			              .AddTo(CanvasGroup.gameObject);
 		}
-		public override void ApplyStart() {
-			CanvasGroup.alpha = StartAlpha;
-		}
-		public override void ApplyEnd() {
-			CanvasGroup.alpha = EndAlpha;
-		}
-
 		public float Duration = 0.3f;
 		public Ease Ease = Ease.Linear;
-		public float StartAlpha;
-		public float EndAlpha = 1f;
+		[FormerlySerializedAs("StartAlpha")]
+		public float Alpha;
 
+		protected override void CaptureValues() {
+			_capturedAlpha = CanvasGroup.alpha;
+		}
+		protected override void RestoreCapturedValues() {
+			CanvasGroup.alpha = _capturedAlpha;
+		}
 		CanvasGroup _canvasGroup;
+		float _capturedAlpha;
 
 		CanvasGroup CanvasGroup
 		{

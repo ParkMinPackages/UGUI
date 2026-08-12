@@ -7,26 +7,30 @@ namespace ParkMinPackages.UGUI.Components.UIActivatorAnimations.LitMotions
 {
 	[MovedFrom(true, "ParkMinPackages.UGUI.Components.UIActivatorAnimations", "ParkMinPackages.UGUI", "UILMMoveFromHideAnimation")]
 	[DisallowMultipleComponent]
-	public class UIMoveDeactivateAnimation : UILitMotionDeactivateAnimation
+	public class UIMoveFromDeactivateAnimation : UILitMotionDeactivateAnimation
 	{
 		public override MotionHandle CreateMotion() {
-			return LMotion.Create(ShownPosition, HiddenPosition, Duration)
+			return LMotion.Create(_capturedPosition, GetOffsetPosition(), Duration)
 			              .WithEase(Ease)
 			              .WithCancelOnError()
 			              .Bind(x => Target.localPosition = x)
 			              .AddTo(Target.gameObject);
 		}
-		public override void ApplyStart() {
-			Target.localPosition = ShownPosition;
-		}
-		public override void ApplyEnd() {
-			Target.localPosition = HiddenPosition;
-		}
-
 		public float Duration = 0.1f;
 		public Ease Ease = Ease.Linear;
-		public Vector3 ShownPosition;
-		public Vector3 HiddenPosition;
+		public Vector3 Offset;
+
+		protected override void CaptureValues() {
+			_capturedPosition = Target.localPosition;
+		}
+		protected override void RestoreCapturedValues() {
+			Target.localPosition = _capturedPosition;
+		}
+		Vector3 _capturedPosition;
+
+		Vector3 GetOffsetPosition() {
+			return _capturedPosition + Offset;
+		}
 	}
 }
 #endif

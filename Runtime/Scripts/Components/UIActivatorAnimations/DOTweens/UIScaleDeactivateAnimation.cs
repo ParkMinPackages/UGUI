@@ -2,6 +2,7 @@
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.Serialization;
 
 namespace ParkMinPackages.UGUI.Components.UIActivatorAnimations.DOTweens
 {
@@ -10,19 +11,20 @@ namespace ParkMinPackages.UGUI.Components.UIActivatorAnimations.DOTweens
 	public class UIScaleDeactivateAnimation : UIDOTweenDeactivateAnimation
 	{
 		public override Tween CreateTween() {
-			return Target.DOScale(EndScale, Duration).From(StartScale).SetEase(Ease);
+			return Target.DOScale(Scale, Duration).From(_capturedScale).SetEase(Ease);
 		}
-		public override void ApplyStart() {
-			Target.localScale = StartScale;
-		}
-		public override void ApplyEnd() {
-			Target.localScale = EndScale;
-		}
-
 		public float Duration = 0.2f;
 		public Ease Ease = Ease.Unset;
-		public Vector3 StartScale = Vector3.one;
-		public Vector3 EndScale = Vector3.zero;
+		[FormerlySerializedAs("EndScale")]
+		public Vector3 Scale = Vector3.zero;
+
+		protected override void CaptureValues() {
+			_capturedScale = Target.localScale;
+		}
+		protected override void RestoreCapturedValues() {
+			Target.localScale = _capturedScale;
+		}
+		Vector3 _capturedScale;
 	}
 }
 #endif

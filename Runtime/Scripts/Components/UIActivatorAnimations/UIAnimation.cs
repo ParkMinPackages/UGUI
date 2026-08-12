@@ -9,9 +9,13 @@ namespace ParkMinPackages.UGUI.Components.UIActivatorAnimations
 	[RequireComponent(typeof(UIActivator))]
 	public abstract class UIAnimation : ExtendedBehaviour
 	{
+		internal void Capture() {
+			CaptureValues();
+		}
+		internal void Restore() {
+			RestoreCapturedValues();
+		}
 		public abstract UniTask ExecuteAsync(CancellationToken cancellationToken = default);
-		public abstract void ApplyStart();
-		public abstract void ApplyEnd();
 
 		public UIActivator UIActivator { get; private set; }
 
@@ -27,6 +31,8 @@ namespace ParkMinPackages.UGUI.Components.UIActivatorAnimations
 		protected virtual void Reset() {
 			Target = GetComponent<RectTransform>();
 		}
+		protected abstract void CaptureValues();
+		protected abstract void RestoreCapturedValues();
 
 		[FormerlySerializedAs("target")]
 		[SerializeField] RectTransform _target;

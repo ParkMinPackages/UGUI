@@ -29,18 +29,17 @@ namespace ParkMinPackages.UGUI.Components
 			if (_state == UIActivationState.Active) return;
 
 			ActiveAnimation[] activeAnimations = _activeAnimations.ToArray();
-			DeactivateAnimation[] deactivateAnimations = _deactivateAnimations.ToArray();
+			Capture(activeAnimations);
 			_isTransitioning = true;
 			UpdateRaycastable();
 
 			try {
 				Canvas.enabled = false;
-				ApplyStart(deactivateAnimations);
-				ApplyStart(activeAnimations);
+				UniTask[] animationTasks = ExecuteAnimations(activeAnimations, cancellationToken);
 				Canvas.enabled = true;
-				await ExecuteAnimationsAsync(activeAnimations, cancellationToken);
+				await UniTask.WhenAll(animationTasks);
 				cancellationToken.ThrowIfCancellationRequested();
-				ApplyEnd(activeAnimations);
+				Restore(activeAnimations);
 				_state = UIActivationState.Active;
 			}
 			catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) {
@@ -48,7 +47,8 @@ namespace ParkMinPackages.UGUI.Components
 				throw;
 			}
 			catch {
-				_state = UIActivationState.Canceled;
+				Restore(activeAnimations);
+				Canvas.enabled = false;
 				throw;
 			}
 			finally {
@@ -66,19 +66,18 @@ namespace ParkMinPackages.UGUI.Components
 			}
 			if (_state == UIActivationState.Inactive) return;
 
-			ActiveAnimation[] activeAnimations = _activeAnimations.ToArray();
 			DeactivateAnimation[] deactivateAnimations = _deactivateAnimations.ToArray();
+			Capture(deactivateAnimations);
 			_isTransitioning = true;
 			UpdateRaycastable();
 
 			try {
 				Canvas.enabled = true;
-				ApplyEnd(activeAnimations);
-				ApplyStart(deactivateAnimations);
-				await ExecuteAnimationsAsync(deactivateAnimations, cancellationToken);
+				UniTask[] animationTasks = ExecuteAnimations(deactivateAnimations, cancellationToken);
+				await UniTask.WhenAll(animationTasks);
 				cancellationToken.ThrowIfCancellationRequested();
-				ApplyEnd(deactivateAnimations);
 				Canvas.enabled = false;
+				Restore(deactivateAnimations);
 				_state = UIActivationState.Inactive;
 			}
 			catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) {
@@ -86,7 +85,8 @@ namespace ParkMinPackages.UGUI.Components
 				throw;
 			}
 			catch {
-				_state = UIActivationState.Canceled;
+				Restore(deactivateAnimations);
+				Canvas.enabled = true;
 				throw;
 			}
 			finally {
@@ -98,10 +98,6 @@ namespace ParkMinPackages.UGUI.Components
 			if (_isTransitioning) {
 				throw new InvalidOperationException($"{nameof(UIActivator)} '{name}' is already transitioning.");
 			}
-			ActiveAnimation[] activeAnimations = _activeAnimations.ToArray();
-			DeactivateAnimation[] deactivateAnimations = _deactivateAnimations.ToArray();
-			ApplyStart(deactivateAnimations);
-			ApplyEnd(activeAnimations);
 			Canvas.enabled = true;
 			_state = UIActivationState.Active;
 			UpdateRaycastable();
@@ -110,10 +106,6 @@ namespace ParkMinPackages.UGUI.Components
 			if (_isTransitioning) {
 				throw new InvalidOperationException($"{nameof(UIActivator)} '{name}' is already transitioning.");
 			}
-			ActiveAnimation[] activeAnimations = _activeAnimations.ToArray();
-			DeactivateAnimation[] deactivateAnimations = _deactivateAnimations.ToArray();
-			ApplyEnd(activeAnimations);
-			ApplyEnd(deactivateAnimations);
 			Canvas.enabled = false;
 			_state = UIActivationState.Inactive;
 			UpdateRaycastable();
@@ -289,17 +281,17 @@ namespace ParkMinPackages.UGUI.Components
 		UIActivationState _state;
 		bool _isTransitioning;
 
-		static void ApplyStart(UIAnimation[] animations) {
+		static void Capture(UIAnimation[] animations) {
 			for (int i = 0; i < animations.Length; i++) {
-				animations[i].ApplyStart();
+				animations[i].Capture();
 			}
 		}
-		static void ApplyEnd(UIAnimation[] animations) {
+		static void Restore(UIAnimation[] animations) {
 			for (int i = 0; i < animations.Length; i++) {
-				animations[i].ApplyEnd();
+				animations[i].Restore();
 			}
 		}
-		static async UniTask ExecuteAnimationsAsync(
+		static UniTask[] ExecuteAnimations(
 			UIAnimation[] animations,
 			CancellationToken cancellationToken
 		) {
@@ -307,23 +299,19 @@ namespace ParkMinPackages.UGUI.Components
 			for (int i = 0; i < animations.Length; i++) {
 				animationTasks[i] = animations[i].ExecuteAsync(cancellationToken);
 			}
-			await UniTask.WhenAll(animationTasks);
+			return animationTasks;
 		}
 		void ApplyActiveCancellation(
 			ActiveAnimation[] activeAnimations,
 			AnimationCancelBehaviour animationCancelBehaviour
 		) {
+			Restore(activeAnimations);
 			switch (animationCancelBehaviour) {
-				case AnimationCancelBehaviour.Stop:
-					_state = UIActivationState.Canceled;
-					break;
 				case AnimationCancelBehaviour.Complete:
-					ApplyEnd(activeAnimations);
 					Canvas.enabled = true;
 					_state = UIActivationState.Active;
 					break;
 				case AnimationCancelBehaviour.ResetToStart:
-					ApplyStart(activeAnimations);
 					Canvas.enabled = false;
 					_state = UIActivationState.Inactive;
 					break;
@@ -335,17 +323,13 @@ namespace ParkMinPackages.UGUI.Components
 			DeactivateAnimation[] deactivateAnimations,
 			AnimationCancelBehaviour animationCancelBehaviour
 		) {
+			Restore(deactivateAnimations);
 			switch (animationCancelBehaviour) {
-				case AnimationCancelBehaviour.Stop:
-					_state = UIActivationState.Canceled;
-					break;
 				case AnimationCancelBehaviour.Complete:
-					ApplyEnd(deactivateAnimations);
 					Canvas.enabled = false;
 					_state = UIActivationState.Inactive;
 					break;
 				case AnimationCancelBehaviour.ResetToStart:
-					ApplyStart(deactivateAnimations);
 					Canvas.enabled = true;
 					_state = UIActivationState.Active;
 					break;
