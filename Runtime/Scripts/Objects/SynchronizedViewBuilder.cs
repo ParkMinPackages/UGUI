@@ -18,6 +18,7 @@ namespace ParkMinPackages.UGUI.Objects
 			viewPrefab.gameObject.SetActive(false);
 
 			Transform viewPrefabParent = viewPrefab.transform.parent;
+			List<TView> trackedViews = new List<TView>();
 
 			ISynchronizedView<TData, TView> view = observableCollection.CreateView(data =>
 			{
@@ -25,6 +26,7 @@ namespace ParkMinPackages.UGUI.Objects
 
 				viewItem.Spawn(data);
 				createdAction?.Invoke(data, viewItem);
+				trackedViews.Add(viewItem);
 
 				return viewItem;
 			});
@@ -37,6 +39,7 @@ namespace ParkMinPackages.UGUI.Objects
 						break;
 
 					case NotifyCollectionChangedAction.Remove:
+						trackedViews.Remove(e.OldItem.View);
 						e.OldItem.View.Remove();
 						break;
 
@@ -45,12 +48,24 @@ namespace ParkMinPackages.UGUI.Objects
 						break;
 
 					case NotifyCollectionChangedAction.Replace:
+						trackedViews.Remove(e.OldItem.View);
+						e.OldItem.View.Remove();
 						ApplyViewSiblingOrderPreserveOtherChildren(view.ToViewList());
 						break;
 
 					case NotifyCollectionChangedAction.Reset:
-						// Reset 시점에 ToViewList가 비어 있을 수 있음.
-						// 필요하면 기존 View들을 별도 추적해서 Remove 처리.
+						if (e.SortOperation.IsClear) {
+							TView[] removedViews = trackedViews.ToArray();
+							trackedViews.Clear();
+
+							foreach (TView removedView in removedViews) {
+								if (removedView != null)
+									removedView.Remove();
+							}
+						}
+						else {
+							ApplyViewSiblingOrderPreserveOtherChildren(view.ToViewList());
+						}
 						break;
 				}
 			};
