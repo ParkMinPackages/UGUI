@@ -4,6 +4,20 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [8.0.0] - 2026-08-14
+
+### Breaking Changes
+- Replaced `SynchronizedViewBuilder` and `ISyncronizedViewItem<TData>` with the separated item View and observable-collection Presenter APIs.
+
+### Added
+- Added `IItemView`, `IItemListView<TModel, TItemView>`, and the reusable `ItemListView<TModel, TItemView>` component.
+- Added `ObservableCollectionItemListPresenter<TModel, TItemView>` to synchronize add, remove, move, replace, clear, reverse, and sort operations.
+- Added ranged reverse and sort handling while preserving the relationship between models and their item Views.
+
+### Changed
+- Preserve non-item children while applying synchronized item sibling order.
+- Moved the superseded synchronized View prototypes into the temporary source area.
+
 ## [7.0.1] - 2026-08-13
 
 ### Fixed
