@@ -4,6 +4,15 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [10.0.0] - 2026-08-14
+
+### Breaking Changes
+- Replaced the prefab-list Presenter creation `Action` with a `Func<TModel, TView, IDisposable>` so each created item can return its lifecycle resource.
+
+### Changed
+- Track each item lifecycle resource together with its model and View.
+- Dispose item lifecycle resources when entries are removed, replaced, cleared, or when the parent Presenter is disposed.
+
 ## [9.0.0] - 2026-08-14
 
 ### Breaking Changes
