@@ -4,6 +4,22 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [9.0.0] - 2026-08-14
+
+### Breaking Changes
+- Replaced `ItemListView<TModel, TItemView>` and `IItemListView<TModel, TItemView>` with the non-generic `PrefabListView` and `IPrefabListView` APIs.
+- Renamed `ObservableCollectionItemListPresenter<TModel, TItemView>` to `ObservableCollectionPrefabListPresenter<TModel, TItemView>`.
+- Removed the `IItemView` lifecycle contract and the `Initialize` and batch `SetOrder` APIs.
+
+### Added
+- Exposed the source prefab and read-only `GameObject` list access from `IPrefabListView`.
+- Added customizable creation and removal actions to the observable-collection presenter.
+- Added guards for missing prefab parents and prefab replacement while items exist.
+
+### Changed
+- Track model and View pairs in one collection and apply sorting through individual move operations.
+- Keep item removal lifecycle behavior external so callers can provide animation, pooling, or destruction behavior.
+
 ## [8.0.0] - 2026-08-14
 
 ### Breaking Changes
