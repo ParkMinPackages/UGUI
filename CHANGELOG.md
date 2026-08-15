@@ -4,6 +4,15 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [11.0.0] - 2026-08-15
+
+### Breaking Changes
+- Replaced the prefab-list Presenter creation `Func` with an initialization `Action<TModel, TView, CompositeDisposable>`.
+
+### Changed
+- Allow each item initializer to register zero or more lifecycle resources without returning a combined disposable.
+- Dispose resources already registered for an item when its initialization fails.
+
 ## [10.0.0] - 2026-08-14
 
 ### Breaking Changes

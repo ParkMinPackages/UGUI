@@ -13,12 +13,12 @@ namespace ParkMinPackages.UGUI.Objects.UILogics
 		public ObservableCollectionPrefabListPresenter(
 			IObservableCollection<TModel> observableCollection,
 			IPrefabListView prefabListView,
-			Func<TModel, TView, IDisposable> createdFunc = null,
+			Action<TModel, TView, CompositeDisposable> initializeAction = null,
 			Action<TModel, TView> removeAction = null
 		) {
 			ObservableCollection = observableCollection ?? throw new ArgumentNullException(nameof(observableCollection));
 			PrefabListView = prefabListView ?? throw new ArgumentNullException(nameof(prefabListView));
-			_createdFunc = createdFunc;
+			_initializeAction = initializeAction;
 			_removeAction = removeAction ?? ((model, view) => {
 				UnityEngine.Object.Destroy(view.gameObject);
 			});
@@ -52,11 +52,11 @@ namespace ParkMinPackages.UGUI.Objects.UILogics
 		public void Dispose() {
 			_subscriptions.Dispose();
 
-			(TModel Model, TView View, IDisposable Disposable)[] items = _items.ToArray();
+			(TModel Model, TView View, CompositeDisposable Disposables)[] items = _items.ToArray();
 			_items.Clear();
 
-			foreach ((TModel Model, TView View, IDisposable Disposable) item in items) {
-				item.Disposable?.Dispose();
+			foreach ((TModel Model, TView View, CompositeDisposable Disposables) item in items) {
+				item.Disposables.Dispose();
 			}
 		}
 
@@ -78,44 +78,43 @@ namespace ParkMinPackages.UGUI.Objects.UILogics
 				);
 			}
 
+			CompositeDisposable disposables = new CompositeDisposable();
+
 			try {
-				IDisposable disposable;
-
-				if (_createdFunc != null)
-					disposable = _createdFunc(model, view);
-				else {
+				if (_initializeAction != null)
+					_initializeAction(model, view, disposables);
+				else
 					view.gameObject.SetActive(true);
-					disposable = null;
-				}
 
-				_items.Insert(index, (model, view, disposable));
+				_items.Insert(index, (model, view, disposables));
 			}
 			catch {
+				disposables.Dispose();
 				PrefabListView.RemoveAt(index);
 				UnityEngine.Object.Destroy(prefabObject);
 				throw;
 			}
 		}
 		void RemoveAt(int index) {
-			(TModel Model, TView View, IDisposable Disposable) item = _items[index];
+			(TModel Model, TView View, CompositeDisposable Disposables) item = _items[index];
 
 			_items.RemoveAt(index);
 			PrefabListView.RemoveAt(index);
-			item.Disposable?.Dispose();
+			item.Disposables.Dispose();
 			_removeAction(item.Model, item.View);
 		}
 		void Move(int oldIndex, int newIndex) {
 			if (oldIndex == newIndex)
 				return;
 
-			(TModel Model, TView View, IDisposable Disposable) item = _items[oldIndex];
+			(TModel Model, TView View, CompositeDisposable Disposables) item = _items[oldIndex];
 
 			_items.RemoveAt(oldIndex);
 			_items.Insert(newIndex, item);
 			PrefabListView.Move(oldIndex, newIndex);
 		}
 		void Replace(int index, TModel model) {
-			(TModel Model, TView View, IDisposable Disposable) removedItem = _items[index];
+			(TModel Model, TView View, CompositeDisposable Disposables) removedItem = _items[index];
 			_items.RemoveAt(index);
 
 			GameObject prefabObject = PrefabListView.Replace(index);
@@ -124,22 +123,22 @@ namespace ParkMinPackages.UGUI.Objects.UILogics
 				AddCreatedView(index, model, prefabObject);
 			}
 			catch {
-				removedItem.Disposable?.Dispose();
+				removedItem.Disposables.Dispose();
 				_removeAction(removedItem.Model, removedItem.View);
 				throw;
 			}
 
-			removedItem.Disposable?.Dispose();
+			removedItem.Disposables.Dispose();
 			_removeAction(removedItem.Model, removedItem.View);
 		}
 		void Clear() {
-			(TModel Model, TView View, IDisposable Disposable)[] removedItems = _items.ToArray();
+			(TModel Model, TView View, CompositeDisposable Disposables)[] removedItems = _items.ToArray();
 
 			_items.Clear();
 			PrefabListView.Clear();
 
-			foreach ((TModel Model, TView View, IDisposable Disposable) item in removedItems) {
-				item.Disposable?.Dispose();
+			foreach ((TModel Model, TView View, CompositeDisposable Disposables) item in removedItems) {
+				item.Disposables.Dispose();
 				_removeAction(item.Model, item.View);
 			}
 		}
@@ -149,8 +148,8 @@ namespace ParkMinPackages.UGUI.Objects.UILogics
 		}
 		void Sort(int index, int count, IComparer<TModel> comparer) {
 			IComparer<TModel> modelComparer = comparer ?? Comparer<TModel>.Default;
-			List<(TModel Model, TView View, IDisposable Disposable)> items =
-				new List<(TModel Model, TView View, IDisposable Disposable)>(count);
+			List<(TModel Model, TView View, CompositeDisposable Disposables)> items =
+				new List<(TModel Model, TView View, CompositeDisposable Disposables)>(count);
 
 			for (int i = index; i < index + count; i++) {
 				items.Add(_items[i]);
@@ -176,7 +175,7 @@ namespace ParkMinPackages.UGUI.Objects.UILogics
 				if (currentIndex == targetIndex)
 					continue;
 
-				(TModel Model, TView View, IDisposable Disposable) movedItem = _items[currentIndex];
+				(TModel Model, TView View, CompositeDisposable Disposables) movedItem = _items[currentIndex];
 
 				_items.RemoveAt(currentIndex);
 				_items.Insert(targetIndex, movedItem);
@@ -196,9 +195,9 @@ namespace ParkMinPackages.UGUI.Objects.UILogics
 		}
 
 		readonly CompositeDisposable _subscriptions;
-		readonly Func<TModel, TView, IDisposable> _createdFunc;
+		readonly Action<TModel, TView, CompositeDisposable> _initializeAction;
 		readonly Action<TModel, TView> _removeAction;
-		readonly List<(TModel Model, TView View, IDisposable Disposable)> _items =
-			new List<(TModel Model, TView View, IDisposable Disposable)>();
+		readonly List<(TModel Model, TView View, CompositeDisposable Disposables)> _items =
+			new List<(TModel Model, TView View, CompositeDisposable Disposables)>();
 	}
 }
