@@ -4,6 +4,14 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [12.0.0] - 2026-08-15
+
+### Breaking Changes
+- Renamed `ObservableCollectionPrefabListPresenter<TModel, TView>` to `ObservableCollectionPrefabListSynchronizer<TModel, TView>`.
+
+### Changed
+- Clarified that the type synchronizes observable collection operations and item lifecycles with a prefab-backed list View.
+
 ## [11.0.0] - 2026-08-15
 
 ### Breaking Changes

@@ -7,10 +7,10 @@ using UnityEngine;
 
 namespace ParkMinPackages.UGUI.Objects.UILogics
 {
-	public class ObservableCollectionPrefabListPresenter<TModel, TView> : IDisposable
+	public class ObservableCollectionPrefabListSynchronizer<TModel, TView> : IDisposable
 		where TView : MonoBehaviour
 	{
-		public ObservableCollectionPrefabListPresenter(
+		public ObservableCollectionPrefabListSynchronizer(
 			IObservableCollection<TModel> observableCollection,
 			IPrefabListView prefabListView,
 			Action<TModel, TView, CompositeDisposable> initializeAction = null,
