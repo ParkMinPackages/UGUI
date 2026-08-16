@@ -213,6 +213,13 @@ namespace ParkMinPackages.UGUI.Editor
 				uiActivator.GetOrAddComponent<Components.UIActivatorAnimations.LitMotions.UISlideDeactivateAnimation>();
 				EditorUtility.SetDirty(uiActivator.gameObject);
 			});
+			root.Q<Button>("LitMotionAddMoveFromButton")?.RegisterCallback<ClickEvent>(_ =>
+			{
+				UIActivator uiActivator = target as UIActivator;
+				uiActivator.GetOrAddComponent<Components.UIActivatorAnimations.LitMotions.UIMoveFromActiveAnimation>();
+				uiActivator.GetOrAddComponent<Components.UIActivatorAnimations.LitMotions.UIMoveFromDeactivateAnimation>();
+				EditorUtility.SetDirty(uiActivator.gameObject);
+			});
 #endif
 		}
 	}

@@ -25,6 +25,7 @@
             <ui:Button text="Add Fade" name="LitMotionAddFadeButton"/>
             <ui:Button text="Add Scale" name="LitMotionAddScaleButton"/>
             <ui:Button text="Add Slide" name="LitMotionAddSlideButton"/>
+            <ui:Button text="Add Move From" name="LitMotionAddMoveFromButton"/>
         </ui:Foldout>
     </ui:Foldout>
 </ui:UXML>

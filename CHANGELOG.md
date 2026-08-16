@@ -4,6 +4,11 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [12.2.2] - 2026-08-16
+
+### Added
+- Added a LitMotion `Add Move From` Inspector utility that adds matching active and deactivate animations to `UIActivator`.
+
 ## [12.2.1] - 2026-08-16
 
 ### Changed
