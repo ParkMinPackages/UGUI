@@ -21,11 +21,15 @@ namespace ParkMinPackages.UGUI.Components
 
 		public async UniTask ActiveAsync(
 			CancellationToken cancellationToken = default,
-			AnimationCancelBehaviour animationCancelBehaviour = AnimationCancelBehaviour.Complete
+			AnimationCancelBehaviour animationCancelBehaviour = AnimationCancelBehaviour.Complete,
+			bool throwIfTransitioning = true
 		) {
 			cancellationToken.ThrowIfCancellationRequested();
 			if (_isTransitioning) {
-				throw new InvalidOperationException($"{nameof(UIActivator)} '{name}' is already transitioning.");
+				if (throwIfTransitioning) {
+					throw new InvalidOperationException($"{nameof(UIActivator)} '{name}' is already transitioning.");
+				}
+				return;
 			}
 			if (_state == UIActivationState.Active) return;
 
@@ -61,11 +65,15 @@ namespace ParkMinPackages.UGUI.Components
 		}
 		public async UniTask DeactivateAsync(
 			CancellationToken cancellationToken = default,
-			AnimationCancelBehaviour animationCancelBehaviour = AnimationCancelBehaviour.Complete
+			AnimationCancelBehaviour animationCancelBehaviour = AnimationCancelBehaviour.Complete,
+			bool throwIfTransitioning = true
 		) {
 			cancellationToken.ThrowIfCancellationRequested();
 			if (_isTransitioning) {
-				throw new InvalidOperationException($"{nameof(UIActivator)} '{name}' is already transitioning.");
+				if (throwIfTransitioning) {
+					throw new InvalidOperationException($"{nameof(UIActivator)} '{name}' is already transitioning.");
+				}
+				return;
 			}
 			if (_state == UIActivationState.Inactive) return;
 
