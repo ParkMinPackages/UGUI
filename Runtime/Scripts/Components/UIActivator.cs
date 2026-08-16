@@ -7,6 +7,7 @@ using ParkMinPackages.Foundation.Components;
 using ParkMinPackages.UGUI.Components.UIActivatorAnimations;
 using ParkMinPackages.UGUI.Enums;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace ParkMinPackages.UGUI.Components
 {
@@ -28,6 +29,7 @@ namespace ParkMinPackages.UGUI.Components
 			}
 			if (_state == UIActivationState.Active) return;
 
+			SetLayoutIgnored(false);
 			ActiveAnimation[] activeAnimations = _activeAnimations.ToArray();
 			Capture(activeAnimations);
 			_isTransitioning = true;
@@ -53,6 +55,7 @@ namespace ParkMinPackages.UGUI.Components
 			}
 			finally {
 				_isTransitioning = false;
+				SetLayoutIgnored(_state == UIActivationState.Inactive);
 				UpdateRaycastable();
 			}
 		}
@@ -91,6 +94,7 @@ namespace ParkMinPackages.UGUI.Components
 			}
 			finally {
 				_isTransitioning = false;
+				SetLayoutIgnored(_state == UIActivationState.Inactive);
 				UpdateRaycastable();
 			}
 		}
@@ -98,6 +102,7 @@ namespace ParkMinPackages.UGUI.Components
 			if (_isTransitioning) {
 				throw new InvalidOperationException($"{nameof(UIActivator)} '{name}' is already transitioning.");
 			}
+			SetLayoutIgnored(false);
 			Canvas.enabled = true;
 			_state = UIActivationState.Active;
 			UpdateRaycastable();
@@ -108,6 +113,7 @@ namespace ParkMinPackages.UGUI.Components
 			}
 			Canvas.enabled = false;
 			_state = UIActivationState.Inactive;
+			SetLayoutIgnored(true);
 			UpdateRaycastable();
 		}
 
@@ -256,6 +262,8 @@ namespace ParkMinPackages.UGUI.Components
 
 			Canvas.enabled = _startActiveState;
 			_state = _startActiveState ? UIActivationState.Active : UIActivationState.Inactive;
+			_layoutElement = GetComponent<LayoutElement>();
+			SetLayoutIgnored(_state == UIActivationState.Inactive);
 			_fade = Mathf.Clamp01(_fade);
 			UpdateVisibleAndFade();
 			CanvasGroup.interactable = _interactable;
@@ -265,6 +273,7 @@ namespace ParkMinPackages.UGUI.Components
 		// - Components -
 		CanvasGroup _canvasGroup;
 		Canvas _canvas;
+		LayoutElement _layoutElement;
 		readonly List<ActiveAnimation> _activeAnimations = new List<ActiveAnimation>();
 		readonly List<DeactivateAnimation> _deactivateAnimations = new List<DeactivateAnimation>();
 
@@ -277,6 +286,7 @@ namespace ParkMinPackages.UGUI.Components
 		[SerializeField] bool _interactable = true;
 		[SerializeField] float _fade = 1f;
 		[SerializeField] bool _disableRaycastWhileAnimation = true;
+		[SerializeField] bool _manageLayoutElement = true;
 
 		UIActivationState _state;
 		bool _isTransitioning;
@@ -351,6 +361,11 @@ namespace ParkMinPackages.UGUI.Components
 			CanvasGroup.blocksRaycasts =
 				_raycastable &&
 				(_disableRaycastWhileAnimation == false || _isTransitioning == false);
+		}
+		void SetLayoutIgnored(bool ignored) {
+			if (_manageLayoutElement && _layoutElement != null) {
+				_layoutElement.ignoreLayout = ignored;
+			}
 		}
 	}
 }

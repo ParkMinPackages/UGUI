@@ -5,6 +5,7 @@
     <ui:Toggle label="Visible" name="VisibleToggle"/>
     <ui:Toggle label="Raycastable" name="RaycastableToggle"/>
     <ui:Toggle label="Interactable" name="InteractableToggle"/>
+    <ui:Toggle label="Manage Layout Element" name="ManageLayoutElementToggle"/>
     <ui:VisualElement style="flex-grow: 0; flex-direction: row; flex-shrink: 1;">
         <ui:Slider label="Fade" value="1.38" high-value="1" name="FadeSlider" style="flex-grow: 1; justify-content: space-between;"/>
         <ui:FloatField label="" value="1" name="FadeFloatField" style="align-items: center; justify-content: space-between; width: 100px; min-width: 40px; max-width: 40px;"/>

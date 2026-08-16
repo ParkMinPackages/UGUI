@@ -36,6 +36,7 @@ namespace ParkMinPackages.UGUI.Editor
 			ImplementInteractableToggle(root);
 			ImplementFadeSlider(root);
 			ImplementDisableRaycastWhileAnimationToggle(root);
+			ImplementManageLayoutElementToggle(root);
 
 			//버튼 구현
 			ImplementActiveDeactivateButton(root);
@@ -133,6 +134,9 @@ namespace ParkMinPackages.UGUI.Editor
 
 				uiActivator.DisableRaycastWhileAnimation = evt.newValue;
 			});
+		}
+		void ImplementManageLayoutElementToggle(VisualElement root) {
+			root.Q<Toggle>("ManageLayoutElementToggle").BindProperty(serializedObject.FindProperty("_manageLayoutElement"));
 		}
 
 		//버튼 구현

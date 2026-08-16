@@ -4,6 +4,16 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [12.1.0] - 2026-08-16
+
+### Added
+- Added optional `LayoutElement.ignoreLayout` management to `UIActivator`.
+- Added a `Manage Layout Element` toggle to the `UIActivator` Inspector.
+
+### Changed
+- Include an activated UI in layout calculations before its transition starts and exclude it after deactivation completes.
+- Keep layout participation synchronized with immediate transitions, cancellation outcomes, and the configured initial state.
+
 ## [12.0.0] - 2026-08-15
 
 ### Breaking Changes
