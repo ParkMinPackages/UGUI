@@ -11,8 +11,9 @@ namespace ParkMinPackages.UGUI.Components.UIActivatorAnimations.LitMotions
 	[DisallowMultipleComponent]
 	public class UIFadeActiveAnimation : UILitMotionActiveAnimation
 	{
-		public override MotionHandle CreateMotion() {
+		public override MotionHandle CreateMotion(IMotionScheduler scheduler) {
 			return LMotion.Create(Alpha, _capturedAlpha, Duration)
+			              .WithScheduler(scheduler)
 			              .WithEase(Ease)
 			              .WithCancelOnError()
 			              .Bind(x => CanvasGroup.alpha = x)

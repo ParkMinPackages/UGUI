@@ -1,4 +1,4 @@
-﻿#if LITMOTION_SUPPORT
+#if LITMOTION_SUPPORT
 using LitMotion;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
@@ -9,8 +9,9 @@ namespace ParkMinPackages.UGUI.Components.UIActivatorAnimations.LitMotions
 	[DisallowMultipleComponent]
 	public class UIMoveFromActiveAnimation : UILitMotionActiveAnimation
 	{
-		public override MotionHandle CreateMotion() {
+		public override MotionHandle CreateMotion(IMotionScheduler scheduler) {
 			return LMotion.Create(GetOffsetPosition(), _capturedPosition, Duration)
+			              .WithScheduler(scheduler)
 			              .WithEase(Ease)
 			              .WithCancelOnError()
 			              .Bind(x => Target.localPosition = x)

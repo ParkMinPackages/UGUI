@@ -1,4 +1,4 @@
-﻿#if LITMOTION_SUPPORT
+#if LITMOTION_SUPPORT
 using System;
 using LitMotion;
 using ParkMinPackages.UGUI.Enums;
@@ -11,8 +11,9 @@ namespace ParkMinPackages.UGUI.Components.UIActivatorAnimations.LitMotions
 	[DisallowMultipleComponent]
 	public class UISlideDeactivateAnimation : UILitMotionDeactivateAnimation
 	{
-		public override MotionHandle CreateMotion() {
+		public override MotionHandle CreateMotion(IMotionScheduler scheduler) {
 			return LMotion.Create(_capturedPosition, GetHiddenPosition(), Duration)
+			              .WithScheduler(scheduler)
 			              .WithEase(Ease)
 			              .WithCancelOnError()
 			              .Bind(x => Target.localPosition = x)

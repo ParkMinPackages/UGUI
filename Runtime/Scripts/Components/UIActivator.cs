@@ -4,10 +4,24 @@ using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using ParkMinPackages.Foundation.Components;
+using ParkMinPackages.Foundation.Constants;
+using ParkMinPackages.Foundation.Extensions;
 using ParkMinPackages.UGUI.Components.UIActivatorAnimations;
 using ParkMinPackages.UGUI.Enums;
+using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+#if DOTWEEN && UNITASK_DOTWEEN_SUPPORT
+using DOTweenAnimations = ParkMinPackages.UGUI.Components.UIActivatorAnimations.DOTweens;
+#endif
+#if LITMOTION_SUPPORT
+using LitMotionAnimations = ParkMinPackages.UGUI.Components.UIActivatorAnimations.LitMotions;
+#endif
 
 namespace ParkMinPackages.UGUI.Components
 {
@@ -207,7 +221,7 @@ namespace ParkMinPackages.UGUI.Components
 			set
 			{
 				_interactable = value;
-				CanvasGroup.interactable = _interactable;
+				UpdateInteractable();
 			}
 		}
 		public float Fade
@@ -227,6 +241,16 @@ namespace ParkMinPackages.UGUI.Components
 				_disableRaycastWhileAnimation = value;
 				UpdateRaycastable();
 			}
+		}
+		public UIAnimationUpdateMode UpdateMode
+		{
+			get { return _updateMode; }
+			set { _updateMode = value; }
+		}
+		public bool IgnoreTimeScale
+		{
+			get { return _ignoreTimeScale; }
+			set { _ignoreTimeScale = value; }
 		}
 
 		public UIActivationState State
@@ -274,7 +298,7 @@ namespace ParkMinPackages.UGUI.Components
 			SetLayoutIgnored(_state == UIActivationState.Inactive);
 			_fade = Mathf.Clamp01(_fade);
 			UpdateVisibleAndFade();
-			CanvasGroup.interactable = _interactable;
+			UpdateInteractable();
 			UpdateRaycastable();
 		}
 		// ===================== Internals =====================
@@ -286,15 +310,26 @@ namespace ParkMinPackages.UGUI.Components
 		readonly List<DeactivateAnimation> _deactivateAnimations = new List<DeactivateAnimation>();
 
 		// - Core -
-		[SerializeField] bool _startActiveState = true;
-		[SerializeField] bool _overrideStartLocalPosition;
-		[SerializeField] Vector3 _startLocalPosition;
-		[SerializeField] bool _visible = true;
-		[SerializeField] bool _raycastable = true;
-		[SerializeField] bool _interactable = true;
-		[SerializeField] float _fade = 1f;
-		[SerializeField] bool _disableRaycastWhileAnimation = true;
-		[SerializeField] bool _manageLayoutElement = true;
+		[Title("Initial State")]
+		[DisableInPlayMode, SerializeField] bool _startActiveState = true;
+		[DisableInPlayMode, SerializeField] bool _overrideStartLocalPosition;
+		[DisableInPlayMode, ShowIf(nameof(_overrideStartLocalPosition)), SerializeField] Vector3 _startLocalPosition;
+
+		[Title("Visibility")]
+		[OnValueChanged(nameof(UpdateVisibleAndFade)), SerializeField] bool _visible = true;
+		[PropertyRange(0f, 1f), OnValueChanged(nameof(UpdateVisibleAndFade)), SerializeField] float _fade = 1f;
+
+		[Title("Interaction")]
+		[OnValueChanged(nameof(UpdateRaycastable)), SerializeField] bool _raycastable = true;
+		[OnValueChanged(nameof(UpdateInteractable)), SerializeField] bool _interactable = true;
+		[OnValueChanged(nameof(UpdateRaycastable)), SerializeField] bool _disableRaycastWhileAnimation = true;
+
+		[Title("Layout")]
+		[OnValueChanged(nameof(UpdateLayoutParticipation)), FormerlySerializedAs("_manageLayoutElement"), SerializeField] bool _excludeFromLayoutWhenInactive = true;
+
+		[Title("Animation Update")]
+		[SerializeField] UIAnimationUpdateMode _updateMode;
+		[SerializeField] bool _ignoreTimeScale;
 
 		UIActivationState _state;
 		bool _isTransitioning;
@@ -370,10 +405,69 @@ namespace ParkMinPackages.UGUI.Components
 				_raycastable &&
 				(_disableRaycastWhileAnimation == false || _isTransitioning == false);
 		}
-		void SetLayoutIgnored(bool ignored) {
-			if (_manageLayoutElement && _layoutElement != null) {
-				_layoutElement.ignoreLayout = ignored;
-			}
+		void UpdateInteractable() {
+			CanvasGroup.interactable = _interactable;
 		}
+		void UpdateLayoutParticipation() {
+			if (_layoutElement == null)
+				_layoutElement = GetComponent<LayoutElement>();
+
+			SetLayoutIgnored(_state == UIActivationState.Inactive);
+		}
+		void SetLayoutIgnored(bool ignored) {
+			if (_layoutElement != null)
+				_layoutElement.ignoreLayout = _excludeFromLayoutWhenInactive && ignored;
+		}
+
+#if UNITY_EDITOR
+		[PropertyOrder(-100), ButtonGroup("Preview Utility", Order = -100), Button("Active"), DisableIf(nameof(IsTransitioning))] void ActiveFromInspector() {
+			if (Application.isPlaying)
+				ActiveAsync(cancellationToken: Application.exitCancellationToken).Forget();
+			else
+				ActiveImmediate();
+
+			EditorUtility.SetDirty(gameObject);
+		}
+		[PropertyOrder(-100), ButtonGroup("Preview Utility", Order = -100), Button("Deactivate"), DisableIf(nameof(IsTransitioning))] void DeactivateFromInspector() {
+			if (Application.isPlaying)
+				DeactivateAsync(cancellationToken: Application.exitCancellationToken).Forget();
+			else
+				DeactivateImmediate();
+
+			EditorUtility.SetDirty(gameObject);
+		}
+
+#if DOTWEEN && UNITASK_DOTWEEN_SUPPORT
+		[FoldoutGroup("Add Animation Utility", Order = 100)]
+		[TitleGroup("Add Animation Utility/DOTween")]
+		[ButtonGroup("Add Animation Utility/DOTween/Buttons"), Button("Fade")] void AddDOTweenFadeAnimations() => AddAnimationPair<DOTweenAnimations.UIFadeActiveAnimation, DOTweenAnimations.UIFadeDeactivateAnimation>();
+		[FoldoutGroup("Add Animation Utility", Order = 100)]
+		[TitleGroup("Add Animation Utility/DOTween")]
+		[ButtonGroup("Add Animation Utility/DOTween/Buttons"), Button("Scale")] void AddDOTweenScaleAnimations() => AddAnimationPair<DOTweenAnimations.UIScaleActiveAnimation, DOTweenAnimations.UIScaleDeactivateAnimation>();
+		[FoldoutGroup("Add Animation Utility", Order = 100)]
+		[TitleGroup("Add Animation Utility/DOTween")]
+		[ButtonGroup("Add Animation Utility/DOTween/Buttons"), Button("Slide")] void AddDOTweenSlideAnimations() => AddAnimationPair<DOTweenAnimations.UISlideActiveAnimation, DOTweenAnimations.UISlideDeactivateAnimation>();
+#endif
+#if LITMOTION_SUPPORT
+		[FoldoutGroup("Add Animation Utility", Order = 100)]
+		[TitleGroup("Add Animation Utility/LitMotion")]
+		[ButtonGroup("Add Animation Utility/LitMotion/Buttons"), Button("Fade")] void AddLitMotionFadeAnimations() => AddAnimationPair<LitMotionAnimations.UIFadeActiveAnimation, LitMotionAnimations.UIFadeDeactivateAnimation>();
+		[FoldoutGroup("Add Animation Utility", Order = 100)]
+		[TitleGroup("Add Animation Utility/LitMotion")]
+		[ButtonGroup("Add Animation Utility/LitMotion/Buttons"), Button("Scale")] void AddLitMotionScaleAnimations() => AddAnimationPair<LitMotionAnimations.UIScaleActiveAnimation, LitMotionAnimations.UIScaleDeactivateAnimation>();
+		[FoldoutGroup("Add Animation Utility", Order = 100)]
+		[TitleGroup("Add Animation Utility/LitMotion")]
+		[ButtonGroup("Add Animation Utility/LitMotion/Buttons"), Button("Slide")] void AddLitMotionSlideAnimations() => AddAnimationPair<LitMotionAnimations.UISlideActiveAnimation, LitMotionAnimations.UISlideDeactivateAnimation>();
+		[FoldoutGroup("Add Animation Utility", Order = 100)]
+		[TitleGroup("Add Animation Utility/LitMotion")]
+		[ButtonGroup("Add Animation Utility/LitMotion/Buttons"), Button("Move From")] void AddLitMotionMoveFromAnimations() => AddAnimationPair<LitMotionAnimations.UIMoveFromActiveAnimation, LitMotionAnimations.UIMoveFromDeactivateAnimation>();
+#endif
+
+		void AddAnimationPair<TActiveAnimation, TDeactivateAnimation>() where TActiveAnimation : Component where TDeactivateAnimation : Component {
+			gameObject.GetOrAddComponent<TActiveAnimation>();
+			gameObject.GetOrAddComponent<TDeactivateAnimation>();
+			EditorUtility.SetDirty(gameObject);
+		}
+#endif
 	}
 }
