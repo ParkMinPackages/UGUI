@@ -34,7 +34,7 @@ namespace ParkMinPackages.UGUI.Components
 		// ===================== Public API =====================
 
 		public async UniTask ActiveAsync(
-			CancellationToken cancellationToken = default,
+			CancellationToken cancellationToken,
 			AnimationCancelBehaviour animationCancelBehaviour = AnimationCancelBehaviour.Complete,
 			bool throwIfTransitioning = true
 		) {
@@ -78,7 +78,7 @@ namespace ParkMinPackages.UGUI.Components
 			}
 		}
 		public async UniTask DeactivateAsync(
-			CancellationToken cancellationToken = default,
+			CancellationToken cancellationToken,
 			AnimationCancelBehaviour animationCancelBehaviour = AnimationCancelBehaviour.Complete,
 			bool throwIfTransitioning = true
 		) {
@@ -140,7 +140,7 @@ namespace ParkMinPackages.UGUI.Components
 		}
 
 		public async UniTask ActiveWithChildrenAsync(
-			CancellationToken cancellationToken = default,
+			CancellationToken cancellationToken,
 			AnimationCancelBehaviour animationCancelBehaviour = AnimationCancelBehaviour.Complete
 		) {
 			cancellationToken.ThrowIfCancellationRequested();
@@ -154,7 +154,7 @@ namespace ParkMinPackages.UGUI.Components
 			await UniTask.WhenAll(tasks);
 		}
 		public async UniTask DeactivateWithChildrenAsync(
-			CancellationToken cancellationToken = default,
+			CancellationToken cancellationToken,
 			AnimationCancelBehaviour animationCancelBehaviour = AnimationCancelBehaviour.Complete
 		) {
 			cancellationToken.ThrowIfCancellationRequested();
