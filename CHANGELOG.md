@@ -4,6 +4,18 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [13.1.0] - 2026-09-07
+
+### Added
+- Added the PSD Converter editor window for creating scene-root Canvases with either Legacy Text or TextMeshPro text from imported PSD layers.
+- Added PSD-only Unity Search selection, layer and font analysis, document-resolution settings, and undoable conversion that preserves imported sprites and layer hierarchy.
+- Added project-level font mappings, system font import to a configurable folder, TMP font asset creation, and configurable missing-font fallback behavior.
+- Preserved unsupported text styles as images and displayed conversion warnings and results.
+
+### Changed
+- Organized converter settings with section dividers and consolidated system font import into Legacy and TMP buttons, reusing an assigned Font for TMP creation.
+- Updated dependency metadata to Foundation 10.1.0 and Unity UGUI 2.5.0 for the APIs used by this package. PSD Importer 14.x remains an optional prerequisite for the converter.
+
 ## [13.0.0] - 2026-08-28
 
 ### Breaking Changes
