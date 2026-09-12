@@ -55,11 +55,16 @@ namespace ParkMinPackages.UGUI.Editor
             string family = new string(name.TakeWhile(c => c != '-').ToArray());
             return _installedNames.Where(candidate => candidate.Replace(" ", "").IndexOf(family, StringComparison.OrdinalIgnoreCase) >= 0).Take(4).ToArray();
         }
-        public void AutoConnect(PSDFontMapping mapping) {
-            if (mapping.LegacyFont == null && _projectFonts.TryGetValue(mapping.PostScriptName, out List<Font> fonts) && fonts.Count == 1) mapping.LegacyFont = fonts[0];
-            if (mapping.TMPFont != null) return;
-            List<TMP_FontAsset> matches = _tmpFonts.Where(font => font.sourceFontFile != null && (font.sourceFontFile == mapping.LegacyFont || ReadFontNames(AssetDatabase.GetAssetPath(font.sourceFontFile)).Any(info => info.PostScriptName == mapping.PostScriptName))).ToList();
-            if (matches.Count == 1) mapping.TMPFont = matches[0];
+        public Font FindProjectFont(string name) { return _projectFonts.TryGetValue(name, out List<Font> fonts) && fonts.Count == 1 ? fonts[0] : null; }
+        public Font[] FindProjectFonts(string name) { return _projectFonts.TryGetValue(name, out List<Font> fonts) ? fonts.Where(font => font != null).ToArray() : Array.Empty<Font>(); }
+        public TMP_FontAsset[] FindTMPFonts(string name, Font source) {
+            _projectFonts.TryGetValue(name, out List<Font> fonts);
+            return _tmpFonts.Where(font => font != null && font.sourceFontFile != null && (font.sourceFontFile == source || fonts != null && fonts.Contains(font.sourceFontFile))).ToArray();
+        }
+        public TMP_FontAsset FindTMPFont(string name, Font source) {
+            _projectFonts.TryGetValue(name, out List<Font> fonts);
+            List<TMP_FontAsset> matches = _tmpFonts.Where(font => font != null && font.sourceFontFile != null && (font.sourceFontFile == source || fonts != null && fonts.Contains(font.sourceFontFile))).ToList();
+            return matches.Count == 1 ? matches[0] : null;
         }
         public Font ImportFont(PSDFontInfo info, string folder) {
             if (info == null || !info.CanImport) throw new InvalidOperationException("직접 가져올 수 있는 TTF/OTF 원본 파일이 없습니다.");

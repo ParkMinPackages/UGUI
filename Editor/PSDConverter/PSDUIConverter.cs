@@ -87,9 +87,7 @@ namespace ParkMinPackages.UGUI.Editor
             if (EditorApplication.isPlayingOrWillChangePlaymode) return "Edit Mode에서 변환해 주세요.";
             if (PrefabStageUtility.GetCurrentPrefabStage() != null) return "Prefab Mode를 닫고 대상 씬에서 변환해 주세요.";
             if (!settings.UsePSDResolution && (settings.ReferenceResolution.x < 1 || settings.ReferenceResolution.y < 1)) return "기준 해상도는 1 이상이어야 합니다.";
-            if (settings.MissingFontPolicy != PSDMissingFontPolicy.StopConversion) return null;
-            string[] missing = layers.Where(layer => layer.Sprite != null && layer.Data?.Text?.CanConvert == true).SelectMany(layer => layer.Data.Text.Fonts).Distinct().Where(font => settings.ResolveFont(font, output) == null).ToArray();
-            return missing.Length > 0 ? "폰트 에셋을 연결해 주세요: " + string.Join(", ", missing) : null;
+            return null;
         }
         public static GameObject Convert(PSDDocument document, List<PSDImportLayer> layers, PSDConverterSettings settings, PSDTextOutput output, out string report) {
             string error = GetBlockingReason(document, layers, settings, output);
@@ -132,14 +130,15 @@ namespace ParkMinPackages.UGUI.Editor
                     rect.anchoredPosition = new Vector2(bounds.center.x - document.Size.x * 0.5f, document.Size.y * 0.5f - bounds.center.y);
                     rect.gameObject.SetActive(layer.Visible);
                     PSDTextData text = layer.Data.Text;
-                    UnityEngine.Object font = text?.CanConvert == true ? settings.ResolveFont(text.Fonts[0], output) : null;
+                    bool keepImage = settings.IsImageLayer(document.AssetPath, layer.Data.Id);
+                    UnityEngine.Object font = text?.CanConvert == true && !keepImage ? settings.ResolveFont(text.Fonts[0], output) : null;
                     if (font == null) {
                         Image image = Undo.AddComponent<Image>(rect.gameObject);
                         image.sprite = layer.Sprite;
                         image.raycastTarget = false;
                         image.useSpriteMesh = true;
                         imageCount++;
-                        if (layer.Data.IsText) notes.Add(layer.Name + ": 이미지 유지 (" + (layer.Data.Warning ?? "폰트 에셋 미연결") + ")");
+                        if (layer.Data.IsText) notes.Add(layer.Name + ": 이미지 유지 (" + (layer.Data.Warning ?? (keepImage ? "사용자 선택" : "폰트 에셋 미연결")) + ")");
                         continue;
                     }
                     PSDFontMapping mapping = settings.GetMapping(text.Fonts[0]);

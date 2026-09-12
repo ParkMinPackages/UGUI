@@ -4,6 +4,22 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [14.0.0] - 2026-09-08
+
+### Breaking Changes
+- Removed PSDMissingFontPolicy.StopConversion and PSDFontUtility.AutoConnect. Previously saved stop-conversion values resolve to default font fallback.
+
+### Added
+- Added persistent per-PSD, per-layer image preservation choices and disabled checked toggles for unsupported text.
+- Added explicit existing-font candidate selection and a font-list refresh action that preserves assignments.
+
+### Changed
+- Localized and reorganized the converter, showing settings after analysis and keeping only the scene placement button fixed below the scroll view.
+- Consolidated Legacy/TMP conversion into a text-mode selector and one conversion button.
+- Replaced automatic font assignment with explicit state-aware connection, reuse, creation, and import actions; system paths appear only for system import.
+- Clarified colored font outcomes and layer-level unsupported notices without duplicate warnings.
+- Retained current dependency versions; no additional external APIs or dependencies are required.
+
 ## [13.1.0] - 2026-09-07
 
 ### Added
