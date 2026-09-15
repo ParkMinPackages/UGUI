@@ -4,21 +4,6 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [15.0.0] - 2026-09-15
-
-### Breaking Changes
-- Reordered the `UIActivator` asynchronous transition options so `throwIfTransitioning` precedes `animationCancelBehaviour`.
-
-### Added
-- Added `CancellationTokenUntilNextActivationRequest` for observing the lifetime of the current activation request.
-
-### Changed
-- Made cancellation tokens optional for `UIActivator` asynchronous transition methods.
-- Made new activation requests cancel and wait for the previous transition when overlapping transitions are allowed.
-- Made Immediate transitions optionally replace an active transition and renew the activation-request token.
-- Cancelled the current activation request when `UIActivator` is destroyed.
-- Updated Foundation to `10.2.0`.
-
 ## [14.0.0] - 2026-09-08
 
 ### Breaking Changes
