@@ -6,6 +6,7 @@ using Cysharp.Threading.Tasks;
 using ParkMinPackages.Foundation.Components;
 using ParkMinPackages.Foundation.Constants;
 using ParkMinPackages.Foundation.Extensions;
+using ParkMinPackages.Foundation.Objects.Threading;
 using ParkMinPackages.UGUI.Components.UIActivatorAnimations;
 using ParkMinPackages.UGUI.Enums;
 using Sirenix.OdinInspector;
@@ -34,105 +35,141 @@ namespace ParkMinPackages.UGUI.Components
 		// ===================== Public API =====================
 
 		public async UniTask ActiveAsync(
-			CancellationToken cancellationToken,
-			AnimationCancelBehaviour animationCancelBehaviour = AnimationCancelBehaviour.Complete,
-			bool throwIfTransitioning = true
+			CancellationToken cancellationToken = default,
+			bool throwIfTransitioning = true,
+			AnimationCancelBehaviour animationCancelBehaviour = AnimationCancelBehaviour.Complete
 		) {
-			cancellationToken.ThrowIfCancellationRequested();
-			if (_isTransitioning) {
-				if (throwIfTransitioning) {
-					throw new InvalidOperationException($"{nameof(UIActivator)} '{name}' is already transitioning.");
-				}
-				return;
-			}
+			CancellationToken transitionToken = await BeginTransitionAsync(cancellationToken, throwIfTransitioning);
 			if (_state == UIActivationState.Active) return;
 
 			SetLayoutIgnored(false);
 			ActiveAnimation[] activeAnimations = _activeAnimations.ToArray();
 			Capture(activeAnimations);
+			UniTaskCompletionSource transitionCompletionSource = new UniTaskCompletionSource();
+			_transitionCompletionSource = transitionCompletionSource;
 			_isTransitioning = true;
 			UpdateRaycastable();
 
 			try {
 				Canvas.enabled = false;
-				UniTask[] animationTasks = ExecuteAnimations(activeAnimations, cancellationToken);
+				UniTask[] animationTasks = ExecuteAnimations(activeAnimations, transitionToken);
 				Canvas.enabled = true;
 				await UniTask.WhenAll(animationTasks);
-				cancellationToken.ThrowIfCancellationRequested();
+				transitionToken.ThrowIfCancellationRequested();
 				Restore(activeAnimations);
 				_state = UIActivationState.Active;
 			}
-			catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) {
-				ApplyActiveCancellation(activeAnimations, animationCancelBehaviour);
+			catch (OperationCanceledException) when (transitionToken.IsCancellationRequested) {
+				if (ReferenceEquals(_transitionCompletionSource, transitionCompletionSource)) {
+					ApplyActiveCancellation(activeAnimations, animationCancelBehaviour);
+				}
+				else {
+					Restore(activeAnimations);
+				}
 				throw;
 			}
 			catch {
 				Restore(activeAnimations);
-				Canvas.enabled = false;
+				if (ReferenceEquals(_transitionCompletionSource, transitionCompletionSource)) {
+					Canvas.enabled = false;
+				}
 				throw;
 			}
 			finally {
-				_isTransitioning = false;
-				SetLayoutIgnored(_state == UIActivationState.Inactive);
-				UpdateRaycastable();
+				try {
+					if (ReferenceEquals(_transitionCompletionSource, transitionCompletionSource)) {
+						_isTransitioning = false;
+						SetLayoutIgnored(_state == UIActivationState.Inactive);
+						UpdateRaycastable();
+					}
+				}
+				finally {
+					if (ReferenceEquals(_transitionCompletionSource, transitionCompletionSource)) {
+						_transitionCompletionSource = null;
+					}
+					transitionCompletionSource.TrySetResult();
+				}
 			}
 		}
 		public async UniTask DeactivateAsync(
-			CancellationToken cancellationToken,
-			AnimationCancelBehaviour animationCancelBehaviour = AnimationCancelBehaviour.Complete,
-			bool throwIfTransitioning = true
+			CancellationToken cancellationToken = default,
+			bool throwIfTransitioning = true,
+			AnimationCancelBehaviour animationCancelBehaviour = AnimationCancelBehaviour.Complete
 		) {
-			cancellationToken.ThrowIfCancellationRequested();
-			if (_isTransitioning) {
-				if (throwIfTransitioning) {
-					throw new InvalidOperationException($"{nameof(UIActivator)} '{name}' is already transitioning.");
-				}
-				return;
-			}
+			CancellationToken transitionToken = await BeginTransitionAsync(cancellationToken, throwIfTransitioning);
 			if (_state == UIActivationState.Inactive) return;
 
 			DeactivateAnimation[] deactivateAnimations = _deactivateAnimations.ToArray();
 			Capture(deactivateAnimations);
+			UniTaskCompletionSource transitionCompletionSource = new UniTaskCompletionSource();
+			_transitionCompletionSource = transitionCompletionSource;
 			_isTransitioning = true;
 			UpdateRaycastable();
 
 			try {
 				Canvas.enabled = true;
-				UniTask[] animationTasks = ExecuteAnimations(deactivateAnimations, cancellationToken);
+				UniTask[] animationTasks = ExecuteAnimations(deactivateAnimations, transitionToken);
 				await UniTask.WhenAll(animationTasks);
-				cancellationToken.ThrowIfCancellationRequested();
+				transitionToken.ThrowIfCancellationRequested();
 				Canvas.enabled = false;
 				Restore(deactivateAnimations);
 				_state = UIActivationState.Inactive;
 			}
-			catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) {
-				ApplyDeactivateCancellation(deactivateAnimations, animationCancelBehaviour);
+			catch (OperationCanceledException) when (transitionToken.IsCancellationRequested) {
+				if (ReferenceEquals(_transitionCompletionSource, transitionCompletionSource)) {
+					ApplyDeactivateCancellation(deactivateAnimations, animationCancelBehaviour);
+				}
+				else {
+					Restore(deactivateAnimations);
+				}
 				throw;
 			}
 			catch {
 				Restore(deactivateAnimations);
-				Canvas.enabled = true;
+				if (ReferenceEquals(_transitionCompletionSource, transitionCompletionSource)) {
+					Canvas.enabled = true;
+				}
 				throw;
 			}
 			finally {
-				_isTransitioning = false;
-				SetLayoutIgnored(_state == UIActivationState.Inactive);
-				UpdateRaycastable();
+				try {
+					if (ReferenceEquals(_transitionCompletionSource, transitionCompletionSource)) {
+						_isTransitioning = false;
+						SetLayoutIgnored(_state == UIActivationState.Inactive);
+						UpdateRaycastable();
+					}
+				}
+				finally {
+					if (ReferenceEquals(_transitionCompletionSource, transitionCompletionSource)) {
+						_transitionCompletionSource = null;
+					}
+					transitionCompletionSource.TrySetResult();
+				}
 			}
 		}
-		public void ActiveImmediate() {
+		public void ActiveImmediate(bool throwIfTransitioning = true) {
 			if (_isTransitioning) {
-				throw new InvalidOperationException($"{nameof(UIActivator)} '{name}' is already transitioning.");
+				if (throwIfTransitioning) {
+					throw new InvalidOperationException($"{nameof(UIActivator)} '{name}' is already transitioning.");
+				}
 			}
+			_activationRequestCancellationTokenSource.CancelPreviousAndCreateToken();
+			_transitionCompletionSource = null;
+			_isTransitioning = false;
 			SetLayoutIgnored(false);
 			Canvas.enabled = true;
 			_state = UIActivationState.Active;
 			UpdateRaycastable();
 		}
-		public void DeactivateImmediate() {
+		public void DeactivateImmediate(bool throwIfTransitioning = true) {
 			if (_isTransitioning) {
-				throw new InvalidOperationException($"{nameof(UIActivator)} '{name}' is already transitioning.");
+				if (throwIfTransitioning) {
+					throw new InvalidOperationException($"{nameof(UIActivator)} '{name}' is already transitioning.");
+				}
 			}
+			_activationRequestCancellationTokenSource.CancelPreviousAndCreateToken();
+			_transitionCompletionSource = null;
+			_isTransitioning = false;
 			Canvas.enabled = false;
 			_state = UIActivationState.Inactive;
 			SetLayoutIgnored(true);
@@ -140,30 +177,28 @@ namespace ParkMinPackages.UGUI.Components
 		}
 
 		public async UniTask ActiveWithChildrenAsync(
-			CancellationToken cancellationToken,
+			CancellationToken cancellationToken = default,
 			AnimationCancelBehaviour animationCancelBehaviour = AnimationCancelBehaviour.Complete
 		) {
 			cancellationToken.ThrowIfCancellationRequested();
 			UIActivator[] uiActivators = ChildNodesEnumerable().ToArray();
-			EnsureNoneTransitioning(uiActivators);
 			UniTask[] tasks = new UniTask[uiActivators.Length];
 
 			for (int i = 0; i < uiActivators.Length; i++) {
-				tasks[i] = uiActivators[i].ActiveAsync(cancellationToken, animationCancelBehaviour);
+				tasks[i] = uiActivators[i].ActiveAsync(cancellationToken, false, animationCancelBehaviour);
 			}
 			await UniTask.WhenAll(tasks);
 		}
 		public async UniTask DeactivateWithChildrenAsync(
-			CancellationToken cancellationToken,
+			CancellationToken cancellationToken = default,
 			AnimationCancelBehaviour animationCancelBehaviour = AnimationCancelBehaviour.Complete
 		) {
 			cancellationToken.ThrowIfCancellationRequested();
 			UIActivator[] uiActivators = ChildNodesEnumerable().ToArray();
-			EnsureNoneTransitioning(uiActivators);
 			UniTask[] tasks = new UniTask[uiActivators.Length];
 
 			for (int i = 0; i < uiActivators.Length; i++) {
-				tasks[i] = uiActivators[i].DeactivateAsync(cancellationToken, animationCancelBehaviour);
+				tasks[i] = uiActivators[i].DeactivateAsync(cancellationToken, false, animationCancelBehaviour);
 			}
 			await UniTask.WhenAll(tasks);
 		}
@@ -265,6 +300,10 @@ namespace ParkMinPackages.UGUI.Components
 		{
 			get { return _isTransitioning; }
 		}
+		public CancellationToken CancellationTokenUntilNextActivationRequest
+		{
+			get { return _activationRequestCancellationTokenSource.Token; }
+		}
 
 		// - Components -
 		public CanvasGroup CanvasGroup
@@ -301,6 +340,10 @@ namespace ParkMinPackages.UGUI.Components
 			UpdateInteractable();
 			UpdateRaycastable();
 		}
+		protected override void OnDestroy() {
+			_activationRequestCancellationTokenSource.Dispose();
+			base.OnDestroy();
+		}
 		// ===================== Internals =====================
 		// - Components -
 		CanvasGroup _canvasGroup;
@@ -333,6 +376,23 @@ namespace ParkMinPackages.UGUI.Components
 
 		UIActivationState _state;
 		bool _isTransitioning;
+		readonly AutoRenewCancellationTokenSource _activationRequestCancellationTokenSource = new AutoRenewCancellationTokenSource();
+		UniTaskCompletionSource _transitionCompletionSource;
+
+		async UniTask<CancellationToken> BeginTransitionAsync(CancellationToken cancellationToken, bool throwIfTransitioning) {
+			cancellationToken.ThrowIfCancellationRequested();
+			if (_isTransitioning && throwIfTransitioning) {
+				throw new InvalidOperationException($"{nameof(UIActivator)} '{name}' is already transitioning.");
+			}
+
+			UniTaskCompletionSource previousTransition = _transitionCompletionSource;
+			CancellationToken transitionToken = _activationRequestCancellationTokenSource.CancelPreviousAndCreateToken(cancellationToken);
+			if (previousTransition != null) {
+				await previousTransition.Task.AttachExternalCancellation(transitionToken);
+			}
+			transitionToken.ThrowIfCancellationRequested();
+			return transitionToken;
+		}
 
 		static void Capture(UIAnimation[] animations) {
 			for (int i = 0; i < animations.Length; i++) {
